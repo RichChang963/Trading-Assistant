@@ -1,0 +1,8 @@
+# Default LLM provider (openai, gemini, or perplexity)
+LLM_Model_provider: perplexity
+
+OPENAI_MODEL: gpt-4o-mini
+
+GEMINI_MODEL: gemini-2.0-flash-exp
+
+PERPLEXITY_MODEL: sonar-pro

@@ -68,7 +68,7 @@ Assistant: [Agent retrieves TSLA news]
 
 ## Architecture
 
-The agent uses LangChain's modern architecture (post v1.0.0):
+The agent uses LangChain's modern architecture (post v1.0.0).
 
 ## License
 

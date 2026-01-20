@@ -1,6 +1,7 @@
 langchain==1.2.4
 langchain-openai==1.1.7
 langchain-google-genai==4.2.0
+langchain-ollama==1.0.1
 
 # Optional but commonly required with newer LangChain installs:
 langchain-community==0.4.1

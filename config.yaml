@@ -1,8 +1,11 @@
-# Default LLM provider (openai, gemini, or perplexity)
-LLM_Model_provider: perplexity
+# Default LLM provider (openai, gemini, perplexity, or ollama)
+LLM_Model_provider: openai
 
 OPENAI_MODEL: gpt-4o-mini
 
 GEMINI_MODEL: gemini-2.0-flash-exp
 
 PERPLEXITY_MODEL: sonar-pro
+
+OLLAMA_MODEL: llama3.2
+OLLAMA_BASE_URL: http://localhost:11434 # Change only if Ollama runs on a different host/port

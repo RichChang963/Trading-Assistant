@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 from tools.openbb_tool import get_stock_data, get_economic_data
 
 ROOT_FOLDER = pathlib.Path(__file__).parent
@@ -22,15 +23,16 @@ LLM_MODEL_API_DICT = {
     "openai": "OPENAI_API_KEY",
     "gemini": "GOOGLE_API_KEY",
     "perplexity": "PERPLEXITY_API_KEY",
+    "ollama": None,  # Ollama runs locally, no API key needed
 }
 
 def get_llm(provider:str=None):
     """Initialize and return the selected LLM."""
     model_api_key = LLM_MODEL_API_DICT.get(provider, "")
-    api_key = os.getenv(model_api_key)
+    api_key = os.getenv(model_api_key) if model_api_key else None
     api_mode = MODEL_CONFIG.get(f"{provider.upper()}_MODEL", "gpt-4o-mini")
 
-    if not api_key:
+    if model_api_key and not api_key:
         raise ValueError(f"{model_api_key} not found in environment")
     
     if provider == "openai":
@@ -44,9 +46,15 @@ def get_llm(provider:str=None):
             base_url="https://api.perplexity.ai",
             temperature=0
         )
+    elif provider == "ollama":
+        base_url = MODEL_CONFIG.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        return ChatOllama(
+            model=api_mode,
+            base_url=base_url,
+            temperature=0
+        )
     else:
-        raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'gemini', or 'perplexity'")
-
+        raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'gemini', 'perplexity', or 'ollama'")
 
 def create_trading_agent(provider:str=None):
     """Create a trading assistant agent with OpenBB tools."""

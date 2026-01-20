@@ -64,7 +64,11 @@ def create_trading_agent(provider:str=None):
     - Analyzing financial data and providing insights
 
     Always provide clear, concise answers based on the data you retrieve. If you need \n
-    to fetch data, use the available tools."""
+    to fetch data, use the available tools. The values shall be from OpenBB only if \n
+    it is available. The other news or content-wise information can be from other \n 
+    available sources or tools.
+    
+    The output shall remove string like [1][2][3] since those are just reference."""
     )
     
     agent = create_agent(
@@ -76,8 +80,8 @@ def create_trading_agent(provider:str=None):
     return agent
 
 
-def main():
-    """Main function to run the trading assistant."""
+def run_cli():
+    """CLI function to run the trading assistant."""
     print("=== Trading Assistant with LangChain & OpenBB ===\n")
     
     try:
@@ -90,7 +94,7 @@ def main():
             user_input = input("You: ").strip()
 
             if user_input.lower() in ['exit', 'quit']:
-                print("See you nex time!")
+                print("See you next time!")
                 break
             
             if not user_input:
@@ -103,6 +107,11 @@ def main():
                 print(f"\nError: {str(e)}\n")
     except Exception as e:
         print(f"Error initializing agent: {str(e)}")
+
+
+def main():
+    """Main function - defaults to CLI."""
+    run_cli()
 
 
 if __name__ == "__main__":

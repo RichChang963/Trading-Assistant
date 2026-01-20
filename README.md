@@ -45,7 +45,7 @@ Select the LLM model that you would like to us in the `config.yaml`.
 
 ## Usage
 
-### Basic Usage
+### 1. Basic Command-line (CLI) Usage
 
 Run the agent:
 
@@ -65,6 +65,16 @@ Assistant: [Agent fetches and analyzes AAPL data]
 You: Get me the latest news about Tesla
 Assistant: [Agent retrieves TSLA news]
 ```
+
+### 2. Running the Streamlit Dashboard
+
+To run the Streamlit dashboard:
+
+```bash
+streamlit run dashboard.py
+```
+
+The dashboard will open in your browser at `http://localhost:8501`. The app will enable you to interact in the chatbox.
 
 ## Architecture
 

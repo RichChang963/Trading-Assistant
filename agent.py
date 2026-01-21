@@ -26,6 +26,14 @@ LLM_MODEL_API_DICT = {
     "ollama": None,  # Ollama runs locally, no API key needed
 }
 
+
+def load_system_prompt() -> str:
+    """Load system prompt from markdown file."""
+    prompt_path = ROOT_FOLDER / ".github" / "prompts" / "role.prompt.md"
+    with open(prompt_path, "r", encoding="utf-8") as f:
+        return f.read()
+    
+
 def get_llm(provider:str=None):
     """Initialize and return the selected LLM."""
     model_api_key = LLM_MODEL_API_DICT.get(provider, "")
@@ -62,22 +70,7 @@ def create_trading_agent(provider:str=None):
     
     tools = [get_stock_data, get_economic_data]
     
-    system_message = (
-    """You are a helpful financial analyst assistant with access to real-time market \n
-    data through OpenBB.
-        
-    Your capabilities include:
-    - Fetching stock quotes, historical data, news, and company profiles
-    - Retrieving economic indicators like GDP and CPI
-    - Analyzing financial data and providing insights
-
-    Always provide clear, concise answers based on the data you retrieve. If you need \n
-    to fetch data, use the available tools. The values shall be from OpenBB only if \n
-    it is available. The other news or content-wise information can be from other \n 
-    available sources or tools.
-    
-    The output shall remove string like [1][2][3] since those are just reference."""
-    )
+    system_message = load_system_prompt()
     
     agent = create_agent(
         model=llm,

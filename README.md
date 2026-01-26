@@ -20,7 +20,6 @@ Then, clone the source code from GitHub onto your local machine and navigate int
 ```bash
 git clone https://github.com/samarthiith/Trading-Assistant
 cd Trading-Assistant
-conda env create -f environment.yaml
 ```
 
 ### 2. Create Conda Environment

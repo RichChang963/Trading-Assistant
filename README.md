@@ -13,8 +13,14 @@ An intelligent trading assistant powered by LangChain that integrates with OpenB
 
 ### 1. Clone the Repository
 
+In order to install the application, first make sure you have _git_, _conda_ installed.
+
+Then, clone the source code from GitHub onto your local machine and navigate into the `Trading-Assistant` directory. Finally, use the provided `environment.yaml` file to create the _conda_ environment.
+
 ```bash
-cd /home/ycc/Trading-Assistant
+git clone https://github.com/samarthiith/Trading-Assistant
+cd Trading-Assistant
+conda env create -f environment.yaml
 ```
 
 ### 2. Create Conda Environment

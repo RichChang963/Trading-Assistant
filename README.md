@@ -1,11 +1,11 @@
-# Trading Assistant with LangChain & OpenBB
+# Trading Assistant with LangChain & OpenBB & Yahoo Finance
 
-An intelligent trading assistant powered by LangChain that integrates with OpenBB for real-time market data. Supports multiple LLM providers: OpenAI, Google Gemini, and Perplexity.
+An intelligent trading assistant powered by LangChain that integrates with OpenBB and Yahoo Finance for real-time market data. Supports multiple LLM providers: OpenAI, Google Gemini, and Perplexity.
 
 ## Features
 
 - 🤖 **Multi-LLM Support**: Choose between OpenAI, Google Gemini, or Perplexity
-- 📊 **Real-time Market Data**: Access stock quotes, historical data, news, and company profiles via OpenBB
+- 📊 **Real-time Market Data**: Access stock quotes, historical data, news, and company profiles via OpenBB and Yahoo Finance
 - 📈 **Economic Indicators**: Fetch GDP, CPI, and other economic data
 - 💬 **Conversational Interface**: Natural language queries for financial data
 
@@ -41,6 +41,7 @@ Edit `.env` and add your API keys:
 
 - **OpenAI**: https://platform.openai.com/api-keys
 - **Google Gemini**: https://makersuite.google.com/app/apikey
+- **Anthropic Claude**: https://platform.claude.com/docs/en/api/admin/api_keys/retrieve
 - **Perplexity**: https://www.perplexity.ai/settings/api
 - **OpenBB**: https://docs.openbb.co/python/extensions/interface/openbb-api
 

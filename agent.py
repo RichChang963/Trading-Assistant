@@ -4,9 +4,12 @@ import yaml
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
-from tools.openbb_tool import get_stock_data, get_economic_data
+from utils.query_router import pass_and_return_rewritten_query
+from tools.openbb_tool import get_stock_data, get_economic_data, get_market_overview
+from tools.yahoo_finance_tool import get_yahoo_stock_data, get_yahoo_market_data, search_yahoo_ticker
 
 ROOT_FOLDER = pathlib.Path(__file__).parent
 
@@ -21,6 +24,7 @@ load_dotenv(dotenv_path=env_path)
 
 LLM_MODEL_API_DICT = {
     "openai": "OPENAI_API_KEY",
+    "claude": "CLAUDE_API_KEY",
     "gemini": "GOOGLE_API_KEY",
     "perplexity": "PERPLEXITY_API_KEY",
     "ollama": None,  # Ollama runs locally, no API key needed
@@ -35,7 +39,7 @@ def load_system_prompt() -> str:
     
 
 def get_llm(provider:str=None):
-    """Initialize and return the selected LLM."""
+    """Get LLM with strict tool-only configuration."""
     model_api_key = LLM_MODEL_API_DICT.get(provider, "")
     api_key = os.getenv(model_api_key) if model_api_key else None
     api_mode = MODEL_CONFIG.get(f"{provider.upper()}_MODEL", "gpt-4o-mini")
@@ -44,9 +48,24 @@ def get_llm(provider:str=None):
         raise ValueError(f"{model_api_key} not found in environment")
     
     if provider == "openai":
-        return ChatOpenAI(model="gpt-4o-mini", temperature=0)
+        return ChatOpenAI(
+            model=api_mode, 
+            api_key=api_key,
+            temperature=0
+        )
+    elif provider == "claude":
+        return ChatAnthropic(
+            model=api_mode,
+            api_key=api_key,
+            temperature=0,
+            # Anthropic respects tool usage better
+        )
     elif provider == "gemini":
-        return ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
+        return ChatGoogleGenerativeAI(
+            model=api_mode,
+            api_key=api_key,
+            temperature=0
+        )
     elif provider == "perplexity":
         return ChatOpenAI(
             model=api_mode,
@@ -62,20 +81,50 @@ def get_llm(provider:str=None):
             temperature=0
         )
     else:
-        raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'gemini', 'perplexity', or 'ollama'")
+        raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'gemini', 'claude', 'perplexity', or 'ollama'")
+
 
 def create_trading_agent(provider:str=None):
-    """Create a trading assistant agent with OpenBB tools."""
+    """Create a trading assistant agent with OpenBB and Yahoo Finance tools ONLY."""
     llm = get_llm(provider)
     
-    tools = [get_stock_data, get_economic_data]
+    # All available tools from both OpenBB and Yahoo Finance
+    tools = [
+        # OpenBB tools
+        get_stock_data, 
+        get_economic_data, 
+        get_market_overview,
+        # Yahoo Finance tools
+        get_yahoo_stock_data,
+        get_yahoo_market_data,
+        search_yahoo_ticker
+    ]
     
     system_message = load_system_prompt()
+    
+    # Add extra enforcement in system prompt
+    strict_enforcement = """
+    🚨 ABSOLUTE REQUIREMENT 🚨
+    You are FORBIDDEN from using web search or external knowledge.
+    You MUST ONLY use the provided tools: get_stock_data, get_economic_data, get_market_overview, get_yahoo_stock_data, get_yahoo_market_data, search_yahoo_ticker.
+
+    BEFORE answering ANY question:
+    1. Identify which tool to use
+    2. Call the tool with appropriate parameters
+    3. Use ONLY the tool's output in your response
+    4. If no tool can answer, say: "I cannot answer this without OpenBB or Yahoo Finance data."
+
+    DO NOT access web search. DO NOT use pre-trained knowledge. ONLY USE TOOLS.
+
+    Example for "gold price past 5 years":
+    - Use: get_yahoo_stock_data('GC=F', 'history_1y') for gold futures
+    - OR: get_stock_data('GLD', 'historical') for gold ETF
+    """
     
     agent = create_agent(
         model=llm,
         tools=tools,
-        system_prompt=system_message,
+        system_prompt=system_message + strict_enforcement,
     )
     
     return agent
@@ -83,27 +132,27 @@ def create_trading_agent(provider:str=None):
 
 def run_cli():
     """CLI function to run the trading assistant."""
-    print("=== Trading Assistant with LangChain & OpenBB ===\n")
+    print("=== Trading Assistant with LangChain & OpenBB & Yahoo Finance ===\n")
     
     try:
         provider = MODEL_CONFIG.get("LLM_Model_provider").lower()
         agent = create_trading_agent(provider)
         print(f"\nAgent initialized with {provider} ✅")
-        print("Type 'exit' or 'quit' to end the session.\n")
+        print("Type 'exit', 'quit', or 'q' to end the session.\n")
 
         while True:
             user_input = input("You: ").strip()
 
-            if user_input.lower() in ['exit', 'quit']:
-                print("See you next time!")
+            if user_input.lower() in ['exit', 'quit', 'q']:
+                print("See you next time!👋")
                 break
             
             if not user_input:
                 continue
             
             try:
-                response = agent.invoke({"messages": [("user", user_input)]})
-                print(f"\nAssistant: {response['messages'][-1].content}\n")
+                response = pass_and_return_rewritten_query(user_input, agent)
+                print(f"\nAssistant: {response}\n")
             except Exception as e:
                 print(f"\nError: {str(e)}\n")
     except Exception as e:

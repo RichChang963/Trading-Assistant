@@ -27,6 +27,7 @@ LLM_MODEL_API_DICT = {
     "claude": "CLAUDE_API_KEY",
     "gemini": "GOOGLE_API_KEY",
     "perplexity": "PERPLEXITY_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
     "ollama": None,  # Ollama runs locally, no API key needed
 }
 
@@ -73,6 +74,13 @@ def get_llm(provider:str=None):
             base_url="https://api.perplexity.ai",
             temperature=0
         )
+    elif provider == "openrouter":
+        return ChatOpenAI(
+            model=api_mode,
+            api_key=api_key,
+            base_url="https://openrouter.ai/api/v1",
+            temperature=0
+        )
     elif provider == "ollama":
         base_url = MODEL_CONFIG.get("OLLAMA_BASE_URL", "http://localhost:11434")
         return ChatOllama(
@@ -81,7 +89,7 @@ def get_llm(provider:str=None):
             temperature=0
         )
     else:
-        raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'gemini', 'claude', 'perplexity', or 'ollama'")
+        raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'gemini', 'claude', 'perplexity', 'openrouter', or 'ollama'")
 
 
 def create_trading_agent(provider:str=None):

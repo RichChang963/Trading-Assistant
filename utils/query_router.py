@@ -8,6 +8,46 @@ def route_query_to_tool(query: str) -> dict:
     """
     query_lower = query.lower()
     
+    # Commodity mapping: keyword -> [primary_symbol, alternatives...]
+    commodity_map = {
+        "gold": ["XAU=F", "GC=F", "GLD"],
+        "xau": ["XAU=F", "GC=F", "GLD"],
+        "silver": ["XAG=F", "SI=F", "SLV"],
+        "xag": ["XAG=F", "SI=F", "SLV"],
+        "oil": ["CL=F", "BZ=F", "USO"],
+        "crude": ["CL=F", "BZ=F", "USO"],
+        "wti": ["CL=F"],
+        "brent": ["BZ=F"],
+        "natural gas": ["NG=F", "UNG"],
+        "copper": ["HG=F", "COPX"],
+        "platinum": ["PL=F", "PPLT"],
+        "palladium": ["PA=F", "PALL"],
+        "corn": ["ZC=F", "CORN"],
+        "wheat": ["ZW=F", "WEAT"],
+        "soybean": ["ZS=F", "SOYB"],
+        "cotton": ["CT=F"],
+        "coffee": ["KC=F"],
+        "sugar": ["SB=F"],
+    }
+    
+    # Check for commodity keywords FIRST (before generic stock queries)
+    for commodity, symbols in commodity_map.items():
+        if commodity in query_lower:
+            primary = symbols[0]
+            alternatives = ', '.join([f"'{s}'" for s in symbols[1:]])
+            symbol_list = ', '.join([f"'{s}'" for s in symbols])
+            
+            suggestion = f"Use get_yahoo_stock_data('{primary}', 'info') or get_yahoo_stock_data('{primary}', 'history_1y') to get {commodity} price. "
+            if alternatives:
+                suggestion += f"Alternative symbols: {alternatives}. "
+            suggestion += f"Answer this question: {query}"
+            
+            return {
+                "suggested_tool": "get_yahoo_stock_data",
+                "parameters": {"symbol": primary, "function": "info"},
+                "rewritten_query": suggestion
+            }
+    
     # Stock price queries
     if any(word in query_lower for word in ['price', 'stock', 'quote', 'trading']):
         # Extract potential ticker
@@ -18,14 +58,6 @@ def route_query_to_tool(query: str) -> dict:
                 "parameters": {"symbol": ticker_match.group(1), "function": "quote"},
                 "rewritten_query": f"Use get_stock_data('{ticker_match.group(1)}', 'quote') to answer: {query}"
             }
-    
-    # Gold/commodities queries
-    if 'gold' in query_lower:
-        return {
-            "suggested_tool": "get_yahoo_stock_data",
-            "parameters": {"symbol": "GC=F", "function": "history_1y"},
-            "rewritten_query": "Use get_yahoo_stock_data('GC=F', 'history_1y') for gold futures or get_yahoo_stock_data('GLD', 'history_1y') for gold ETF to answer: " + query
-        }
     
     # Economic data queries
     if any(word in query_lower for word in ['gdp', 'inflation', 'cpi', 'unemployment', 'economy']):

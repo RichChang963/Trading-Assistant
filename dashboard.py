@@ -24,9 +24,9 @@ with st.sidebar:
     st.subheader("LLM Provider")
     provider = st.selectbox(
         "Select Model Provider",
-        options=["gemini", "openai", "claude", "perplexity", "ollama"],
+        options=["gemini", "openai", "claude", "perplexity", "openrouter", "ollama"],
         index=(
-            ["gemini", "openai", "claude", "perplexity", "ollama"].index(
+            ["gemini", "openai", "claude", "perplexity", "openrouter", "ollama"].index(
                 config.get('LLM_Model_provider', 'gemini')
             )
         ),
@@ -38,6 +38,7 @@ with st.sidebar:
         "openai": config.get('OPENAI_MODEL', 'gpt-4o-mini'),
         "claude": config.get('CLAUDE_MODEL', 'claude-3-5-sonnet-20241022'),
         "perplexity": config.get('PERPLEXITY_MODEL', 'sonar-pro'),
+        "openrouter": config.get('OPENROUTER_MODEL', 'openai/gpt-4o-mini'),
         "ollama": config.get('OLLAMA_MODEL', 'llama3.2')
     }
     

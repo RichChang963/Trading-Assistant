@@ -5,9 +5,11 @@ An intelligent trading assistant powered by LangChain that integrates with OpenB
 ## Features
 
 - 🤖 **Multi-LLM Support**: Choose between OpenAI, Google Gemini, Anthropic Claude, Perplexity, OpenRouter, or Ollama
+- � **Two-Agent System**: Separate data retrieval from analysis for better performance and clarity
 - 📊 **Real-time Market Data**: Access stock quotes, historical data, news, and company profiles via OpenBB and Yahoo Finance
 - 📈 **Economic Indicators**: Fetch GDP, CPI, and other economic data
 - 💬 **Conversational Interface**: Natural language queries for financial data
+- 🌟 **Commodity Mapping**: Automatic symbol resolution (Gold→XAU, Silver→XAG, etc.)
 
 ## Installation
 
@@ -62,17 +64,29 @@ Run the agent:
 python agent.py
 ```
 
-You will see the initalization and then you can start to ask questions (taking Openai as an example):
+You'll be prompted to choose between:
+- **Single Agent Mode** (1): All-in-one agent handles everything
+- **Two-Agent System** (2): Separate data retrieval and analysis
+
+Example interaction with Two-Agent System:
 
 ```bash
-Agent initialized with openai ✅
-Type 'exit' or 'quit' to end the session.
+Select mode:
+1. Single Agent (default - all-in-one)
+2. Two-Agent System (data retrieval + analysis)
 
-You: What's the current price of Apple stock?
-Assistant: [Agent fetches and analyzes AAPL data]
+Enter choice (1 or 2, default=1): 2
+
+🤖 Initializing Two-Agent System with gemini...
+✅ Two-Agent System ready!
+   📡 Data Agent: Fetches market data
+   📊 Analysis Agent: Provides insights
+
+You: What's the gold price trend?
+[Agent processes with two-phase approach: data → analysis]
 
 You: Get me the latest news about Tesla
-Assistant: [Agent retrieves TSLA news]
+[Agent retrieves TSLA news then analyzes sentiment]
 ```
 
 ### 2. Running the Streamlit Dashboard
@@ -84,6 +98,40 @@ streamlit run dashboard.py
 ```
 
 The dashboard will open in your browser at `http://localhost:8501`. The app will enable you to interact in the chatbox.
+
+In the sidebar, you can switch between:
+- **Single Agent**: Traditional all-in-one approach
+- **Two-Agent System**: Separate data fetching and analysis
+
+## Agent Modes
+
+### Single Agent Mode
+Traditional approach where one agent handles both data retrieval and analysis.
+
+```
+User Query → Agent → Tools + Analysis → Response
+```
+
+### Two-Agent System
+Modern architecture separating concerns:
+
+```
+User Query → Orchestrator
+              ↓
+         Data Agent (fetches data)
+              ↓
+         Analysis Agent (analyzes)
+              ↓  
+         Combined Response
+```
+
+**Benefits**:
+- Clear separation between data and analysis
+- Specialized prompts for each task
+- Better debugging and transparency
+- More accurate commodity symbol mapping
+
+See [TWO_AGENT_SYSTEM.md](docs/TWO_AGENT_SYSTEM.md) for detailed documentation.
 
 ## Architecture
 

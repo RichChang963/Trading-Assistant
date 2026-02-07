@@ -1,7 +1,7 @@
 import streamlit as st
 import yaml
 from utils.query_router import pass_and_return_rewritten_query
-from agent import create_trading_agent
+from agent import create_trading_agent, create_two_agent_system
 
 # Load configuration
 with open("config.yaml", "r") as f:
@@ -20,6 +20,19 @@ st.caption("Powered by OpenBB & Yahoo Finance APIs")
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Settings")
+    
+    st.subheader("🤖 Agent Mode")
+    agent_mode = st.radio(
+        "Select Agent System",
+        options=["Single Agent", "Two-Agent System"],
+        index=0,
+        help="Single: All-in-one agent\nTwo-Agent: Separate data retrieval & analysis"
+    )
+    
+    if agent_mode == "Two-Agent System":
+        st.info("📡 **Data Agent** fetches data\n📊 **Analysis Agent** provides insights")
+    else:
+        st.info("🤖 All-in-one agent handles everything")
 
     st.subheader("LLM Provider")
     provider = st.selectbox(
@@ -50,6 +63,8 @@ with st.sidebar:
         st.session_state.messages = []
         if 'agent' in st.session_state:
             del st.session_state.agent
+        if 'orchestrator' in st.session_state:
+            del st.session_state.orchestrator
         st.rerun()
     
     st.divider()
@@ -66,8 +81,8 @@ with st.sidebar:
     st.markdown("### 📈 Yahoo Finance Tools")
     st.markdown("""
     - 📈 `get_yahoo_stock_data`: info, history, financials, recommendations
-    - 📊` get_yahoo_market_data`: market indices
-    - 🌐 search_yahoo_ticker`: search ticker symbols
+    - 📊 `get_yahoo_market_data`: market indices
+    - 🌐 `search_yahoo_ticker`: search ticker symbols
     """)
 
     st.divider()
@@ -76,15 +91,37 @@ with st.sidebar:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Reinitialize agent if provider changes
+# Reinitialize if provider or mode changes
+reinit_needed = False
 if "current_provider" not in st.session_state or st.session_state.current_provider != provider:
     st.session_state.current_provider = provider
-    with st.spinner(f"Initializing {provider} model..."):
-        st.session_state.agent = create_trading_agent(provider=provider)
-    st.success(f"✅ {provider.capitalize()} model loaded!")
+    reinit_needed = True
 
-# Initialize agent if not exists
-if "agent" not in st.session_state:
+if "current_mode" not in st.session_state or st.session_state.current_mode != agent_mode:
+    st.session_state.current_mode = agent_mode
+    reinit_needed = True
+
+if reinit_needed:
+    with st.spinner(f"Initializing {agent_mode} with {provider}..."):
+        if agent_mode == "Two-Agent System":
+            st.session_state.orchestrator = create_two_agent_system(provider=provider)
+            if 'agent' in st.session_state:
+                del st.session_state.agent
+        else:
+            st.session_state.agent = create_trading_agent(provider=provider)
+            if 'orchestrator' in st.session_state:
+                del st.session_state.orchestrator
+    st.success(f"✅ {agent_mode} with {provider.capitalize()} loaded!")
+
+# Initialize on first load
+if agent_mode == "Two-Agent System" and "orchestrator" not in st.session_state:
+    try:
+        with st.spinner("Initializing Two-Agent System..."):
+            st.session_state.orchestrator = create_two_agent_system(provider=provider)
+    except Exception as e:
+        st.error(f"Error initializing orchestrator: {str(e)}")
+        st.stop()
+elif agent_mode == "Single Agent" and "agent" not in st.session_state:
     try:
         with st.spinner("Initializing agent..."):
             st.session_state.agent = create_trading_agent(provider=provider)
@@ -105,11 +142,14 @@ if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
-    # Get AI response with enhanced query
+    # Get AI response
     with st.chat_message("assistant"):
-        with st.spinner("Analyzing..."):
+        with st.spinner("Processing..."):
             try:
-                response = pass_and_return_rewritten_query(user_input, st.session_state.agent)
+                if agent_mode == "Two-Agent System":
+                    response = st.session_state.orchestrator.process_query(user_input, verbose=False)
+                else:
+                    response = pass_and_return_rewritten_query(user_input, st.session_state.agent)
                 st.markdown(response)
                 st.session_state.messages.append({"role": "assistant", "content": response})
             except Exception as e:

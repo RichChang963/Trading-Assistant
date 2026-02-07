@@ -10,6 +10,10 @@ from langchain_ollama import ChatOllama
 from utils.query_router import pass_and_return_rewritten_query
 from tools.openbb_tool import get_stock_data, get_economic_data, get_market_overview
 from tools.yahoo_finance_tool import get_yahoo_stock_data, get_yahoo_market_data, search_yahoo_ticker
+from agents.data_agent import create_data_agent
+from agents.analysis_agent import create_analysis_agent
+from agents.orchestrator import TwoAgentOrchestrator
+from utils.settings import load_system_prompt
 
 ROOT_FOLDER = pathlib.Path(__file__).parent
 
@@ -30,13 +34,6 @@ LLM_MODEL_API_DICT = {
     "openrouter": "OPENROUTER_API_KEY",
     "ollama": None,  # Ollama runs locally, no API key needed
 }
-
-
-def load_system_prompt() -> str:
-    """Load system prompt from markdown file."""
-    prompt_path = ROOT_FOLDER / ".github" / "prompts" / "role.prompt.md"
-    with open(prompt_path, "r", encoding="utf-8") as f:
-        return f.read()
     
 
 def get_llm(provider:str=None):
@@ -108,34 +105,35 @@ def create_trading_agent(provider:str=None):
         search_yahoo_ticker
     ]
     
-    system_message = load_system_prompt()
-    
-    # Add extra enforcement in system prompt
-    strict_enforcement = """
-    🚨 ABSOLUTE REQUIREMENT 🚨
-    You are FORBIDDEN from using web search or external knowledge.
-    You MUST ONLY use the provided tools: get_stock_data, get_economic_data, get_market_overview, get_yahoo_stock_data, get_yahoo_market_data, search_yahoo_ticker.
-
-    BEFORE answering ANY question:
-    1. Identify which tool to use
-    2. Call the tool with appropriate parameters
-    3. Use ONLY the tool's output in your response
-    4. If no tool can answer, say: "I cannot answer this without OpenBB or Yahoo Finance data."
-
-    DO NOT access web search. DO NOT use pre-trained knowledge. ONLY USE TOOLS.
-
-    Example for "gold price past 5 years":
-    - Use: get_yahoo_stock_data('GC=F', 'history_1y') for gold futures
-    - OR: get_stock_data('GLD', 'historical') for gold ETF
-    """
+    system_message = load_system_prompt("single_agent.role.prompt.md")
     
     agent = create_agent(
         model=llm,
         tools=tools,
-        system_prompt=system_message + strict_enforcement,
+        system_prompt=system_message,
     )
     
     return agent
+
+
+def create_two_agent_system(provider:str=None):
+    """
+    Create a two-agent system: one for data retrieval, one for analysis.
+    
+    Args:
+        provider: LLM provider (openai, claude, gemini, etc.)
+        
+    Returns:
+        TwoAgentOrchestrator instance that coordinates both agents
+    """
+    llm = get_llm(provider)
+    
+    # Create specialized agents
+    data_agent = create_data_agent(llm)
+    analysis_agent = create_analysis_agent(llm)
+    
+    # Return orchestrator that manages both
+    return TwoAgentOrchestrator(data_agent, analysis_agent)
 
 
 def run_cli():
@@ -144,9 +142,27 @@ def run_cli():
     
     try:
         provider = MODEL_CONFIG.get("LLM_Model_provider").lower()
-        agent = create_trading_agent(provider)
-        print(f"\nAgent initialized with {provider} ✅")
-        print("Type 'exit', 'quit', or 'q' to end the session.\n")
+        
+        # Ask user which mode they want
+        print("Select mode:")
+        print("1. Single Agent (default - all-in-one)")
+        print("2. Two-Agent System (data retrieval + analysis)")
+        mode_choice = input("\nEnter choice (1 or 2, default=1): ").strip() or "1"
+        
+        if mode_choice == "2":
+            print(f"\n🤖 Initializing Two-Agent System with {provider}...")
+            orchestrator = create_two_agent_system(provider)
+            print(f"✅ Two-Agent System ready!")
+            print("   📡 Data Agent: Fetches market data")
+            print("   📊 Analysis Agent: Provides insights")
+            use_two_agent = True
+        else:
+            print(f"\n🤖 Initializing Single Agent with {provider}...")
+            agent = create_trading_agent(provider)
+            print(f"✅ Single Agent ready!")
+            use_two_agent = False
+        
+        print("\nType 'exit', 'quit', or 'q' to end the session.\n")
 
         while True:
             user_input = input("You: ").strip()
@@ -159,7 +175,10 @@ def run_cli():
                 continue
             
             try:
-                response = pass_and_return_rewritten_query(user_input, agent)
+                if use_two_agent:
+                    response = orchestrator.process_query(user_input, verbose=True)
+                else:
+                    response = pass_and_return_rewritten_query(user_input, agent)
                 print(f"\nAssistant: {response}\n")
             except Exception as e:
                 print(f"\nError: {str(e)}\n")

@@ -61,7 +61,7 @@ Select the LLM model that you would like to us in the `config.yaml`.
 Run the agent:
 
 ```bash
-python agent.py
+python agent_system.py
 ```
 
 You'll be prompted to choose between:

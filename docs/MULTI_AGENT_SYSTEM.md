@@ -72,7 +72,7 @@ User Query → Orchestrator
 ### CLI Mode
 
 ```bash
-python agent.py
+python agent_system.py
 ```
 
 Choose mode when prompted:
@@ -158,8 +158,8 @@ Both agent modes use the same LLM provider.
 
 ```
 Trading-Assistant/
-├── agent.py                    # Main entry point
-├── dashboard.py                # Streamlit UI
+├── agent_system.py            # Main entry point
+├── dashboard.py               # Streamlit UI
 ├── agents/
 │   ├── __init__.py            # Module init
 │   ├── data_agent.py          # Data retrieval agent

@@ -1,7 +1,7 @@
 import streamlit as st
 import yaml
 from utils.query_router import pass_and_return_rewritten_query
-from agent import create_trading_agent, create_two_agent_system
+from agent_system import create_trading_agent, create_two_agent_system
 
 # Load configuration
 with open("config.yaml", "r") as f:
@@ -30,9 +30,9 @@ with st.sidebar:
     )
     
     if agent_mode == "Two-Agent System":
-        st.info("📡 **Data Agent** fetches data\n📊 **Analysis Agent** provides insights")
+        st.info("📡 **Data Agent** fetches data\n\n📊 **Analysis Agent** provides insights")
     else:
-        st.info("🤖 All-in-one agent handles everything")
+        st.info("🤖 **All-in-one agent** handles everything")
 
     st.subheader("LLM Provider")
     provider = st.selectbox(

@@ -131,7 +131,7 @@ This increase aligns with...
 
 ### Using Single Agent
 ```python
-from agent import create_trading_agent
+from agent_system import create_trading_agent
 
 agent = create_trading_agent(provider="gemini")
 response = agent.invoke({"messages": [("user", "What's gold price?")]})
@@ -139,7 +139,7 @@ response = agent.invoke({"messages": [("user", "What's gold price?")]})
 
 ### Using Two-Agent System
 ```python
-from agent import create_two_agent_system
+from agent_system import create_two_agent_system
 
 orchestrator = create_two_agent_system(provider="gemini")
 response = orchestrator.process_query("What's gold price?", verbose=True)

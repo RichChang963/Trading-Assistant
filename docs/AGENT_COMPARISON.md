@@ -103,8 +103,7 @@ This increase aligns with...
 
 - "Analyze gold price trends over the past year"
 - "Compare Apple and Microsoft financial performance"
-- "What does the recent CPI data mean for markets?"
-- "Analyze silver volatility and provide risk assessment"
+- "What does the recent CPI data in Gemrany mean for markets?"
 
 -----------------------------------------------------
 

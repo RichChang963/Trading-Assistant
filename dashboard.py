@@ -78,10 +78,16 @@ with tab1:
         st.subheader("Data Sourcs")
         st.markdown("OpenBB (using Yahoo Finance & OECD as two main sources)")
 
-        st.subheader("Example questions")
+        st.subheader("Example questions - Single Agent")
         st.markdown("- What is the current price of AAPL stock?")
         st.markdown("- What's the gold price trend?")
+        st.markdown("- Get current market indices")
         
+        st.subheader("Example questions - Two-Agent System")
+        st.markdown("- Analyze gold price trends over the past year")
+        st.markdown("- Compare Apple and Microsoft financial performance")
+        st.markdown("- What does the recent CPI data mean for markets?")
+
         st.divider()
 
     # Initialize session state
@@ -147,6 +153,7 @@ with tab1:
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
+    
         # Get AI response
         with st.chat_message("assistant"):
             with st.spinner("Processing..."):
@@ -169,7 +176,8 @@ with tab1:
                     st.session_state.messages.append(
                         {"role": "assistant", "content": error_msg}
                     )
-
+        # Rerun to display new messages
+        st.rerun()
 with tab2:
     st.header("Documentation")
     docs_path = Path("docs")

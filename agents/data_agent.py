@@ -22,7 +22,7 @@ def create_data_agent(llm):
     Returns
     -------
     AgentExecutor
-       Agent specialized in data retrieval
+        Agent specialized in data retrieval
     """
     tools = [
         # OpenBB tools

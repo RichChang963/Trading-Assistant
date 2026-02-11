@@ -46,7 +46,6 @@ Edit `.env` and add your API keys:
 - **Anthropic Claude**: https://platform.claude.com/docs/en/api/admin/api_keys/retrieve
 - **Perplexity**: https://www.perplexity.ai/settings/api
 - **OpenRouter**: https://openrouter.ai/keys
-- **OpenBB**: https://docs.openbb.co/python/extensions/interface/openbb-api
 
 **Note**: Ollama runs locally and doesn't require an API key.
 
@@ -65,6 +64,7 @@ python agent_system.py
 ```
 
 You'll be prompted to choose between:
+
 - **Single Agent Mode** (1): All-in-one agent handles everything
 - **Two-Agent System** (2): Separate data retrieval and analysis
 
@@ -100,38 +100,43 @@ streamlit run dashboard.py
 The dashboard will open in your browser at `http://localhost:8501`. The app will enable you to interact in the chatbox.
 
 In the sidebar, you can switch between:
+
 - **Single Agent**: Traditional all-in-one approach
 - **Two-Agent System**: Separate data fetching and analysis
 
 ## Agent Modes
 
 ### Single Agent Mode
+
 Traditional approach where one agent handles both data retrieval and analysis.
 
-```
-User Query → Agent → Tools + Analysis → Response
+```mermaid
+graph LR
+    A[User Query] --> B[Single Agent]
+    B --> C[Tools + Analysis]
+    C --> D[Response]
 ```
 
 ### Two-Agent System
+
 Modern architecture separating concerns:
 
-```
-User Query → Orchestrator
-              ↓
-         Data Agent (fetches data)
-              ↓
-         Analysis Agent (analyzes)
-              ↓  
-         Combined Response
+```mermaid
+graph TD
+    A[User Query] --> B[Orchestrator]
+    B --> C[Data Agent]
+    C -->|retrieves data via tools| D[Analysis Agent]
+    D -->|analyzes data| E[Combined Response]
 ```
 
 **Benefits**:
+
 - Clear separation between data and analysis
 - Specialized prompts for each task
 - Better debugging and transparency
 - More accurate commodity symbol mapping
 
-See [TWO_AGENT_SYSTEM.md](docs/TWO_AGENT_SYSTEM.md) for detailed documentation.
+See [MULTI-AGENT_SYSTEM.md](docs/MULTI-AGENT_SYSTEM.md) for detailed documentation.
 
 ## Architecture
 

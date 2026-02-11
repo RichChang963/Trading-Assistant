@@ -1,7 +1,11 @@
 import streamlit as st
+from streamlit_markdown import st_markdown
+from pathlib import Path
 import yaml
 from utils.query_router import pass_and_return_rewritten_query
 from agent_system import create_trading_agent, create_two_agent_system
+
+LLM_LIST = ["gemini", "openai", "claude", "perplexity", "openrouter", "ollama"]
 
 # Load configuration
 with open("config.yaml", "r") as f:
@@ -13,139 +17,167 @@ st.set_page_config(
     layout="wide"
 )
 
-# Header
-st.title("📈 Trading Assistant")
+tab1, tab2 = st.tabs(["🏠 Trading Assistant", "📚 Documentation"])
 
-# Sidebar
-with st.sidebar:
-    st.header("⚙️ Settings")
-    
-    st.subheader("🤖 Agent Mode")
-    agent_mode = st.radio(
-        "Select Agent System",
-        options=["Single Agent", "Two-Agent System"],
-        index=0,
-        help="Single: All-in-one agent\nTwo-Agent: Separate data retrieval & analysis"
-    )
-    
-    if agent_mode == "Two-Agent System":
-        st.info("📡 **Data Agent** fetches data\n\n📊 **Analysis Agent** provides insights")
-    else:
-        st.info("🤖 **All-in-one agent** handles everything")
+with tab1:
+    # Header
+    st.title("Trading Assistant Chatbox")
 
-    st.subheader("LLM Provider")
-    provider = st.selectbox(
-        "Select Model Provider",
-        options=["gemini", "openai", "claude", "perplexity", "openrouter", "ollama"],
-        index=(
-            ["gemini", "openai", "claude", "perplexity", "openrouter", "ollama"].index(
-                config.get('LLM_Model_provider', 'gemini')
-            )
-        ),
-        help="Choose which AI model to use"
-    )
-    
-    model_map = {
-        "gemini": config.get('GEMINI_MODEL', 'gemini-2.5-flash'),
-        "openai": config.get('OPENAI_MODEL', 'gpt-4o-mini'),
-        "claude": config.get('CLAUDE_MODEL', 'claude-3-5-sonnet-20241022'),
-        "perplexity": config.get('PERPLEXITY_MODEL', 'sonar-pro'),
-        "openrouter": config.get('OPENROUTER_MODEL', 'openai/gpt-4o-mini'),
-        "ollama": config.get('OLLAMA_MODEL', 'llama3.2')
-    }
-    
-    st.info(f"**Model:** {model_map[provider]}")
-    
-    # Clear chat history button
-    st.subheader("Chat Controls")
-    if st.button("🗑️ Clear Chat History", use_container_width=True):
-        st.session_state.messages = []
-        if 'agent' in st.session_state:
-            del st.session_state.agent
-        if 'orchestrator' in st.session_state:
-            del st.session_state.orchestrator
-        st.rerun()
-    
-    st.divider()
-
-    st.subheader("Example questions")
-    st.markdown("- What is the current price of AAPL stock?")
-    st.markdown("- What's the gold price trend?")
-
-    st.divider()
-    
-    st.subheader(
-        "🔒 **Data Source: OpenBB (using Yahoo Finance & OECD as two main sources)**"
-    )
-    
-    st.divider()
-
-# Initialize session state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Reinitialize if provider or mode changes
-reinit_needed = False
-if "current_provider" not in st.session_state or st.session_state.current_provider != provider:
-    st.session_state.current_provider = provider
-    reinit_needed = True
-
-if "current_mode" not in st.session_state or st.session_state.current_mode != agent_mode:
-    st.session_state.current_mode = agent_mode
-    reinit_needed = True
-
-if reinit_needed:
-    with st.spinner(f"Initializing {agent_mode} with {provider}..."):
+    # Sidebar
+    with st.sidebar:
+        st.header("⚙️ Settings")
+        
+        st.subheader("🤖 Agent Mode")
+        agent_mode = st.radio(
+            "Select Agent System",
+            options=["Single Agent", "Two-Agent System"],
+            index=0,
+            help="Single: All-in-one agent\nTwo-Agent: " \
+            "Separate data retrieval & analysis"
+        )
+        
         if agent_mode == "Two-Agent System":
-            st.session_state.orchestrator = create_two_agent_system(provider=provider)
-            if 'agent' in st.session_state:
-                del st.session_state.agent
+            st.info(
+                "📡 **Data Agent** fetches data\n\n📊 "
+                "**Analysis Agent** provides insights"
+            )
         else:
-            st.session_state.agent = create_trading_agent(provider=provider)
-            if 'orchestrator' in st.session_state:
+            st.info("🤖 **All-in-one agent** handles everything")
+
+        provider = st.selectbox(
+            "Select Model Provider",
+            options=LLM_LIST,
+            index=(LLM_LIST.index(config.get("LLM_Model_provider", "gemini"))
+            ),
+            help="Choose which AI model to use"
+        )
+        
+        model_map = {
+            "gemini": config.get("GEMINI_MODEL", "gemini-2.5-flash"),
+            "openai": config.get("OPENAI_MODEL", "gpt-4o-mini"),
+            "claude": config.get("CLAUDE_MODEL", "claude-3-5-sonnet-20241022"),
+            "perplexity": config.get("PERPLEXITY_MODEL", "sonar-pro"),
+            "openrouter": config.get("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
+            "ollama": config.get("OLLAMA_MODEL", "llama3.2")
+        }
+        
+        st.info(f"**Model:** {model_map[provider]}")
+        
+        # Clear chat history button
+        st.subheader("Chat Controls")
+        if st.button("🗑️ Clear Chat History", use_container_width=True):
+            st.session_state.messages = []
+            if "agent" in st.session_state:
+                del st.session_state.agent
+            if "orchestrator" in st.session_state:
                 del st.session_state.orchestrator
-    st.success(f"✅ {agent_mode} with {provider.capitalize()} loaded!")
+            st.rerun()
+        
+        st.divider()
 
-# Initialize on first load
-if agent_mode == "Two-Agent System" and "orchestrator" not in st.session_state:
-    try:
-        with st.spinner("Initializing Two-Agent System..."):
-            st.session_state.orchestrator = create_two_agent_system(provider=provider)
-    except Exception as e:
-        st.error(f"Error initializing orchestrator: {str(e)}")
-        st.stop()
-elif agent_mode == "Single Agent" and "agent" not in st.session_state:
-    try:
-        with st.spinner("Initializing agent..."):
-            st.session_state.agent = create_trading_agent(provider=provider)
-    except Exception as e:
-        st.error(f"Error initializing agent: {str(e)}")
-        st.stop()
+        st.subheader("Data Sourcs")
+        st.markdown("OpenBB (using Yahoo Finance & OECD as two main sources)")
 
-# Display chat messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+        st.subheader("Example questions")
+        st.markdown("- What is the current price of AAPL stock?")
+        st.markdown("- What's the gold price trend?")
+        
+        st.divider()
 
-# Chat input
-user_input = st.chat_input("Ask me about stocks, markets, or economic data...")
+    # Initialize session state
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-if user_input:
-    # Add user message to chat
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(user_input)
-    # Get AI response
-    with st.chat_message("assistant"):
-        with st.spinner("Processing..."):
-            try:
-                if agent_mode == "Two-Agent System":
-                    response = st.session_state.orchestrator.process_query(user_input, verbose=False)
-                else:
-                    response = pass_and_return_rewritten_query(user_input, st.session_state.agent)
-                st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
-            except Exception as e:
-                error_msg = f"Error: {str(e)}"
-                st.error(error_msg)
-                st.session_state.messages.append({"role": "assistant", "content": error_msg})
+    # Reinitialize if provider or mode changes
+    reinit_needed = False
+    if ("current_provider" not in st.session_state) or (
+        st.session_state.current_provider != provider
+    ):
+        st.session_state.current_provider = provider
+        reinit_needed = True
+
+    if ("current_mode" not in st.session_state) or (
+        st.session_state.current_mode != agent_mode
+    ):
+        st.session_state.current_mode = agent_mode
+        reinit_needed = True
+
+    if reinit_needed:
+        with st.spinner(f"Initializing {agent_mode} with {provider}..."):
+            if agent_mode == "Two-Agent System":
+                st.session_state.orchestrator = create_two_agent_system(
+                    provider=provider
+                )
+                if "agent" in st.session_state:
+                    del st.session_state.agent
+            else:
+                st.session_state.agent = create_trading_agent(provider=provider)
+                if "orchestrator" in st.session_state:
+                    del st.session_state.orchestrator
+        st.success(f"✅ {agent_mode} with {provider.capitalize()} loaded!")
+
+    # Initialize on first load
+    if agent_mode == "Two-Agent System" and "orchestrator" not in st.session_state:
+        try:
+            with st.spinner("Initializing Two-Agent System..."):
+                st.session_state.orchestrator = create_two_agent_system(
+                    provider=provider
+                )
+        except Exception as e:
+            st.error(f"Error initializing orchestrator: {str(e)}")
+            st.stop()
+    elif agent_mode == "Single Agent" and "agent" not in st.session_state:
+        try:
+            with st.spinner("Initializing agent..."):
+                st.session_state.agent = create_trading_agent(provider=provider)
+        except Exception as e:
+            st.error(f"Error initializing agent: {str(e)}")
+            st.stop()
+
+    # Display chat messages
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # Chat input
+    user_input = st.chat_input("Ask me about stocks, markets, or economic data...")
+
+    if user_input:
+        # Add user message to chat
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+        # Get AI response
+        with st.chat_message("assistant"):
+            with st.spinner("Processing..."):
+                try:
+                    if agent_mode == "Two-Agent System":
+                        response = st.session_state.orchestrator.process_query(
+                            user_input, verbose=False
+                        )
+                    else:
+                        response = pass_and_return_rewritten_query(
+                            user_input, st.session_state.agent
+                        )
+                    st.markdown(response)
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": response}
+                    )
+                except Exception as e:
+                    error_msg = f"Error: {str(e)}"
+                    st.error(error_msg)
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": error_msg}
+                    )
+
+with tab2:
+    st.header("Documentation")
+    docs_path = Path("docs")
+    md_files = list(docs_path.glob("*.md"))
+    
+    doc_names = [f.stem.replace("_", " ").title() for f in md_files]
+    selected = st.selectbox("Select Document", doc_names)
+    
+    selected_file = md_files[doc_names.index(selected)]
+    md = Path(selected_file).read_text(encoding="utf-8")
+    st_markdown(content=md, theme_color="light", mermaid_theme="default")

@@ -1,21 +1,19 @@
 """
-Data Retrieval Agent - Specialized in fetching market data from APIs
+All-in-One Agent - Handles both data retrieval and analysis in a single agent, using all available tools.
 """
 import pathlib
 from langchain.agents import create_agent
 
 from tools.openbb_tool import get_stock_data, get_economic_data, get_market_overview
-from tools.yahoo_finance_tool import (
-    get_yahoo_stock_data, get_yahoo_market_data, search_yahoo_ticker
-)
+from tools.yahoo_finance_tool import get_yahoo_stock_data, get_yahoo_market_data, search_yahoo_ticker
 from utils.settings import load_system_prompt_text
 
 ROOT_FOLDER = pathlib.Path(__file__).parent.parent
 
 
-def create_data_agent(llm):
+def create_all_in_one_agent(llm):
     """
-    Create a data retrieval agent specialized in fetching market data.
+    Create an all-in-one agent that can handle both data retrieval and analysis, using all available tools.
     
     Parameters
     ----------
@@ -25,7 +23,7 @@ def create_data_agent(llm):
     Returns
     -------
     AgentExecutor
-       Agent specialized in data retrieval
+        Agent specialized in data retrieval
     """
     tools = [
         # OpenBB tools
@@ -37,7 +35,7 @@ def create_data_agent(llm):
         get_yahoo_market_data,
         search_yahoo_ticker
     ]
-    system_prompt_text = load_system_prompt_text("multi_agents.data_eng_role.prompt.md")
+    system_prompt_text = load_system_prompt_text("single_agent.role.prompt.md")
 
     agent = create_agent(
         model=llm,

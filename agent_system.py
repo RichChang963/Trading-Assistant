@@ -2,18 +2,16 @@ import os
 import pathlib
 import yaml
 from dotenv import load_dotenv
-from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
-from utils.query_router import pass_and_return_rewritten_query
-from tools.openbb_tool import get_stock_data, get_economic_data, get_market_overview
-from tools.yahoo_finance_tool import get_yahoo_stock_data, get_yahoo_market_data, search_yahoo_ticker
+
+from agents.single_agent import create_all_in_one_agent
 from agents.data_agent import create_data_agent
 from agents.analysis_agent import create_analysis_agent
 from agents.orchestrator import TwoAgentOrchestrator
-from utils.settings import load_system_prompt
+from utils.query_router import pass_and_return_rewritten_query
 
 ROOT_FOLDER = pathlib.Path(__file__).parent
 
@@ -92,28 +90,10 @@ def get_llm(provider:str=None):
 def create_trading_agent(provider:str=None):
     """Create a trading assistant agent with OpenBB and Yahoo Finance tools ONLY."""
     llm = get_llm(provider)
-    
-    # All available tools from both OpenBB and Yahoo Finance
-    tools = [
-        # OpenBB tools
-        get_stock_data, 
-        get_economic_data, 
-        get_market_overview,
-        # Yahoo Finance tools
-        get_yahoo_stock_data,
-        get_yahoo_market_data,
-        search_yahoo_ticker
-    ]
-    
-    system_message = load_system_prompt("single_agent.role.prompt.md")
-    
-    agent = create_agent(
-        model=llm,
-        tools=tools,
-        system_prompt=system_message,
-    )
-    
-    return agent
+
+    agent = create_all_in_one_agent(llm)
+
+    return  agent
 
 
 def create_two_agent_system(provider:str=None):
@@ -127,8 +107,7 @@ def create_two_agent_system(provider:str=None):
         TwoAgentOrchestrator instance that coordinates both agents
     """
     llm = get_llm(provider)
-    
-    # Create specialized agents
+
     data_agent = create_data_agent(llm)
     analysis_agent = create_analysis_agent(llm)
     

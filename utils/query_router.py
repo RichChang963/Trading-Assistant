@@ -85,9 +85,11 @@ def pass_and_return_rewritten_query(user_input: str, agent):
     enhanced_input = routing_info['rewritten_query']
     
     print(f"\n[Routing to: {routing_info['suggested_tool']}]")
-    
+
     # Use invoke with enhanced query
-    result = agent.invoke({"messages": [("user", enhanced_input)]})
+    result = agent.invoke({
+        "messages": [{"role": "user", "content": enhanced_input}]
+    })
     last_message = result["messages"][-1]
 
     print("Analyzing...")

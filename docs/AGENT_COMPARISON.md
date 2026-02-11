@@ -142,7 +142,7 @@ response = agent.invoke({"messages": [("user", "What's gold price?")]})
 from agent_system import create_two_agent_system
 
 orchestrator = create_two_agent_system(provider="gemini")
-response = orchestrator.process_query("What's gold price?", verbose=True)
+response = orchestrator.process_query("What's gold price?", verbose=False)
 ```
 
 ## Error Handling
@@ -219,9 +219,6 @@ orchestrator = TwoAgentOrchestrator(
 
 ### Issue: Analysis is generic
 **Solution:** Ensure data agent returns sufficient data; customize analysis prompt
-
-### Issue: Can't see raw data
-**Solution:** Use verbose=True in CLI or expand "View Raw Data" in dashboard
 
 ## Future Enhancements
 

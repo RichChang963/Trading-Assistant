@@ -15,7 +15,6 @@ st.set_page_config(
 
 # Header
 st.title("📈 Trading Assistant")
-st.caption("Powered by OpenBB & Yahoo Finance APIs")
 
 # Sidebar
 with st.sidebar:
@@ -69,20 +68,25 @@ with st.sidebar:
     
     st.divider()
 
-    st.caption("🔒 **Data Source: OpenBB & Yahoo Finance**")
-    st.markdown("### 📈 OpenBB Tools")
-    st.markdown("""
-    - 📈 `get_stock_data`: quotes, historical, news, profile, financials
-    - 📊 `get_economic_data`: GDP, CPI, unemployment, interest rates
-    - 🌐 `get_market_overview`: indices, gainers, losers, sectors
-    """)
+    st.subheader("Example questions")
+    st.markdown("- What is the current price of AAPL stock?")
+    st.markdown("- What's the gold price trend?")
 
+    st.divider()
     
-    st.markdown("### 📈 Yahoo Finance Tools")
+    st.subheader("🔒 **Data Source: OpenBB & Yahoo Finance**")
+    st.markdown("#### 📈 OpenBB Sources")
     st.markdown("""
-    - 📈 `get_yahoo_stock_data`: info, history, financials, recommendations
-    - 📊 `get_yahoo_market_data`: market indices
-    - 🌐 `search_yahoo_ticker`: search ticker symbols
+    - `get_stock_data`: quotes, historical, news, profile, financials
+    - `get_economic_data`: GDP, CPI, unemployment, interest rates
+    - `get_market_overview`: indices, gainers, losers, sectors
+    """)
+    
+    st.markdown("#### 📈 Yahoo Finance Sources")
+    st.markdown("""
+    - `get_yahoo_stock_data`: info, history, financials, recommendations
+    - `get_yahoo_market_data`: market indices
+    - `search_yahoo_ticker`: search ticker symbols
     """)
 
     st.divider()

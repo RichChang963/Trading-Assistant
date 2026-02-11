@@ -5,7 +5,6 @@ import pathlib
 from langchain.agents import create_agent
 
 from tools.openbb_tool import get_stock_data, get_economic_data, get_market_overview
-from tools.yahoo_finance_tool import get_yahoo_stock_data, get_yahoo_market_data, search_yahoo_ticker
 from utils.settings import load_system_prompt_text
 
 ROOT_FOLDER = pathlib.Path(__file__).parent.parent
@@ -30,10 +29,6 @@ def create_all_in_one_agent(llm):
         get_stock_data, 
         get_economic_data, 
         get_market_overview,
-        # Yahoo Finance tools
-        get_yahoo_stock_data,
-        get_yahoo_market_data,
-        search_yahoo_ticker
     ]
     system_prompt_text = load_system_prompt_text("single_agent.role.prompt.md")
 

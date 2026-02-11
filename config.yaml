@@ -1,4 +1,4 @@
-# You can specify a LLM provider here if you want to (openai, gemini, claude, perplexity, or ollama)
+# You can specify a LLM provider here if you want to (openai, gemini, claude, perplexity, openrouter, or ollama)
 LLM_Model_provider: gemini
 
 OPENAI_MODEL: gpt-4o-mini

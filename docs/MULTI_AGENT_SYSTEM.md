@@ -31,9 +31,6 @@ User Query → Orchestrator
 - `get_stock_data` - OpenBB equity data
 - `get_economic_data` - Economic indicators
 - `get_market_overview` - Market overview
-- `get_yahoo_stock_data` - Yahoo Finance data
-- `get_yahoo_market_data` - Market indices
-- `search_yahoo_ticker` - Ticker search
 
 **Responsibilities**:
 - ✅ Retrieve requested data using tools
@@ -119,7 +116,7 @@ Select agent mode in sidebar:
 #### Two-Agent System:
 ```
 1. Orchestrator routes query
-2. Data Agent: Fetches XAU=F data via get_yahoo_stock_data
+2. Data Agent: Fetches XAU=F data via get_stock_data
 3. Analysis Agent: Analyzes price trends, identifies patterns
 4. Returns: Detailed analysis + raw data
 ```
@@ -166,8 +163,7 @@ Trading-Assistant/
 │   ├── analysis_agent.py      # Analysis agent
 │   └── orchestrator.py        # Agent coordinator
 ├── tools/
-│   ├── openbb_tool.py         # OpenBB tools
-│   └── yahoo_finance_tool.py  # Yahoo Finance tools
+│   └── openbb_tool.py         # OpenBB tools
 └── utils/
     └── query_router.py        # Query routing & commodity mapping
 ```

@@ -74,21 +74,10 @@ with st.sidebar:
 
     st.divider()
     
-    st.subheader("🔒 **Data Source: OpenBB & Yahoo Finance**")
-    st.markdown("#### 📈 OpenBB Sources")
-    st.markdown("""
-    - `get_stock_data`: quotes, historical, news, profile, financials
-    - `get_economic_data`: GDP, CPI, unemployment, interest rates
-    - `get_market_overview`: indices, gainers, losers, sectors
-    """)
+    st.subheader(
+        "🔒 **Data Source: OpenBB (using Yahoo Finance & OECD as two main sources)**"
+    )
     
-    st.markdown("#### 📈 Yahoo Finance Sources")
-    st.markdown("""
-    - `get_yahoo_stock_data`: info, history, financials, recommendations
-    - `get_yahoo_market_data`: market indices
-    - `search_yahoo_ticker`: search ticker symbols
-    """)
-
     st.divider()
 
 # Initialize session state

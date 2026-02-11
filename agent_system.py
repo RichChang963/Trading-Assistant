@@ -88,7 +88,7 @@ def get_llm(provider:str=None):
 
 
 def create_trading_agent(provider:str=None):
-    """Create a trading assistant agent with OpenBB and Yahoo Finance tools ONLY."""
+    """Create a trading assistant agent with OpenBB tools."""
     llm = get_llm(provider)
 
     agent = create_all_in_one_agent(llm)
@@ -117,7 +117,7 @@ def create_two_agent_system(provider:str=None):
 
 def run_cli():
     """CLI function to run the trading assistant."""
-    print("=== Trading Assistant with LangChain & OpenBB & Yahoo Finance ===\n")
+    print("=== Welcome to the Trading Assistant CLI ===\n")
     
     try:
         provider = MODEL_CONFIG.get("LLM_Model_provider").lower()

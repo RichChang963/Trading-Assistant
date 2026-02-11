@@ -29,32 +29,58 @@ def get_stock_data(symbol: str, function: str = "quote") -> str:
         elif function == "historical":
             data = obb.equity.price.historical(symbol, provider="yfinance")
         elif function == "news":
-            data = obb.news.company(symbol, provider="benzinga")
+            data = obb.news.company(symbol, provider="yfinance")
         elif function == "profile":
-            data = obb.equity.profile(symbol, provider="fmp")
+            data = obb.equity.profile(symbol, provider="yfinance")
         elif function == "income":
-            data = obb.equity.fundamental.income(symbol, provider="fmp", period="annual", limit=5)
+            data = obb.equity.fundamental.income(
+                symbol, provider="yfinance", period="annual", limit=5
+            )
         elif function == "balance":
-            data = obb.equity.fundamental.balance(symbol, provider="fmp", period="annual", limit=5)
+            data = obb.equity.fundamental.balance(
+                symbol, provider="yfinance", period="annual", limit=5
+            )
         elif function == "cash":
-            data = obb.equity.fundamental.cash(symbol, provider="fmp", period="annual", limit=5)
+            data = obb.equity.fundamental.cash(
+                symbol, provider="yfinance", period="annual", limit=5
+            )
         elif function == "metrics":
-            data = obb.equity.fundamental.metrics(symbol, provider="fmp", period="annual", limit=5)
+            data = obb.equity.fundamental.metrics(
+                symbol, provider="yfinance", period="annual", limit=5
+            )
         else:
             return json.dumps({
                 "error": f"Unknown function: {function}",
-                "available_functions": ["quote", "historical", "news", "profile", "income", "balance", "cash", "metrics"]
+                "available_functions": [
+                    "quote", 
+                    "historical", 
+                    "news", 
+                    "profile", 
+                    "income", 
+                    "balance", 
+                    "cash", 
+                    "metrics"
+                ]
             }, indent=2)
         
         # Convert to dict if it's an OBBject
-        if hasattr(data, 'to_dict'):
+        if hasattr(data, "to_dict"):
             result = data.to_dict()
-        elif hasattr(data, 'results'):
-            result = [item.model_dump() if hasattr(item, 'model_dump') else str(item) for item in data.results]
+        elif hasattr(data, "results"):
+            result = [
+                item.model_dump() if hasattr(item, 'model_dump') else str(item) 
+                for item in data.results
+            ]
         else:
             result = str(data)
-        
-        return json.dumps({"success": True, "function": function, "symbol": symbol, "data": result}, indent=2, default=str)
+        return json.dumps(
+            {
+                "success": True, 
+                "function": function, 
+                "symbol": symbol, 
+                "data": result
+            }, indent=2, default=str
+        )
     except Exception as e:
         return json.dumps({
             "success": False,
@@ -64,7 +90,7 @@ def get_stock_data(symbol: str, function: str = "quote") -> str:
 
 
 @tool
-def get_economic_data(indicator: str, country: str = "US") -> str:
+def get_economic_data(indicator: str, country: str = "united_states") -> str:
     """
     Fetch economic indicators using OpenBB. This is the ONLY source for economic data.
     
@@ -74,8 +100,7 @@ def get_economic_data(indicator: str, country: str = "US") -> str:
             - 'cpi': Consumer Price Index (inflation)
             - 'unemployment': Unemployment rate
             - 'interest_rate': Federal funds rate
-            - 'retail_sales': Retail sales data
-        country: Country code (default: 'US')
+        country: Country code (default: 'united_states')
     
     Returns:
         JSON string with economic data or error message
@@ -86,27 +111,36 @@ def get_economic_data(indicator: str, country: str = "US") -> str:
         if indicator_lower == "gdp":
             data = obb.economy.gdp(country=country, provider="oecd")
         elif indicator_lower == "cpi":
-            data = obb.economy.cpi(country=country, provider="fred")
+            data = obb.economy.cpi(country=country, provider="oecd")
         elif indicator_lower in ["unemployment", "unemployment_rate"]:
             data = obb.economy.unemployment(country=country, provider="oecd")
         elif indicator_lower in ["interest_rate", "fed_funds"]:
-            data = obb.economy.fred_series(series_id="FEDFUNDS", provider="fred")
-        elif indicator_lower == "retail_sales":
-            data = obb.economy.retail_sales(country=country, provider="fred")
+            data = obb.economy.interest_rates(country=country, provider="oecd")
         else:
             return json.dumps({
                 "error": f"Unknown indicator: {indicator}",
-                "available_indicators": ["gdp", "cpi", "unemployment", "interest_rate", "retail_sales"]
+                "available_indicators": [
+                    "gdp", "cpi", "unemployment", "interest_rate"
+                ]
             }, indent=2)
         
-        if hasattr(data, 'to_dict'):
+        if hasattr(data, "to_dict"):
             result = data.to_dict()
         elif hasattr(data, 'results'):
-            result = [item.model_dump() if hasattr(item, 'model_dump') else str(item) for item in data.results]
+            result = [
+                item.model_dump() if hasattr(item, 'model_dump') else str(item) 
+                for item in data.results
+            ]
         else:
             result = str(data)
         
-        return json.dumps({"success": True, "indicator": indicator, "country": country, "data": result}, indent=2, default=str)
+        return json.dumps(
+            {
+                "success": True, 
+                "indicator": indicator, 
+                "country": country, 
+                "data": result
+            }, indent=2, default=str)
     except Exception as e:
         return json.dumps({
             "success": False,
@@ -122,7 +156,7 @@ def get_market_overview(data_type: str = "indices") -> str:
     
     Args:
         data_type: Type of market data. Options:
-            - 'indices': Major market indices (S&P 500, NASDAQ, DOW)
+            - 'indices': Major market indices (S&P 500, NASDAQ, DOW, etc.)
             - 'gainers': Top gaining stocks
             - 'losers': Top losing stocks
             - 'active': Most actively traded stocks
@@ -135,7 +169,14 @@ def get_market_overview(data_type: str = "indices") -> str:
         data_type_lower = data_type.lower()
         
         if data_type_lower == "indices":
-            data = obb.index.market(provider="yfinance")
+            obb.index.price.historical(
+                symbol=[
+                    "^GSPC", "^DJI", "^IXIC", "^FTSE", "^GDAXI", "^FCHI", "^N225", 
+                    "^HSI", "^KS11", "000001.SS"
+                ],
+                provider="yfinance",
+                start_date="2000-01-01",
+            )
         elif data_type_lower == "gainers":
             data = obb.equity.discovery.gainers(provider="yfinance")
         elif data_type_lower == "losers":
@@ -150,14 +191,22 @@ def get_market_overview(data_type: str = "indices") -> str:
                 "available_types": ["indices", "gainers", "losers", "active", "sectors"]
             }, indent=2)
         
-        if hasattr(data, 'to_dict'):
+        if hasattr(data, "to_dict"):
             result = data.to_dict()
         elif hasattr(data, 'results'):
-            result = [item.model_dump() if hasattr(item, 'model_dump') else str(item) for item in data.results]
+            result = [
+                item.model_dump() if hasattr(item, 'model_dump') else str(item) 
+                for item in data.results
+            ]
         else:
             result = str(data)
         
-        return json.dumps({"success": True, "data_type": data_type, "data": result}, indent=2, default=str)
+        return json.dumps(
+            {
+                "success": True, 
+                "data_type": data_type, 
+                "data": result
+            }, indent=2, default=str)
     except Exception as e:
         return json.dumps({
             "success": False,

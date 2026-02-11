@@ -35,15 +35,14 @@ def route_query_to_tool(query: str) -> dict:
         if commodity in query_lower:
             primary = symbols[0]
             alternatives = ', '.join([f"'{s}'" for s in symbols[1:]])
-            symbol_list = ', '.join([f"'{s}'" for s in symbols])
             
-            suggestion = f"Use get_yahoo_stock_data('{primary}', 'info') or get_yahoo_stock_data('{primary}', 'history_1y') to get {commodity} price. "
+            suggestion = f"Use get_stock_data('{primary}', 'quote') to get {commodity} price. "
             if alternatives:
                 suggestion += f"Alternative symbols: {alternatives}. "
             suggestion += f"Answer this question: {query}"
             
             return {
-                "suggested_tool": "get_yahoo_stock_data",
+                "suggested_tool": "get_stock_data",
                 "parameters": {"symbol": primary, "function": "info"},
                 "rewritten_query": suggestion
             }
@@ -54,7 +53,7 @@ def route_query_to_tool(query: str) -> dict:
         ticker_match = re.search(r'\b([A-Z]{1,5})\b', query)
         if ticker_match:
             return {
-                "suggested_tool": "get_stock_data or get_yahoo_stock_data",
+                "suggested_tool": "get_stock_data",
                 "parameters": {"symbol": ticker_match.group(1), "function": "quote"},
                 "rewritten_query": f"Use get_stock_data('{ticker_match.group(1)}', 'quote') to answer: {query}"
             }
@@ -76,7 +75,7 @@ def route_query_to_tool(query: str) -> dict:
     
     return {
         "suggested_tool": "unknown",
-        "rewritten_query": f"⚠️ IMPORTANT: Only use OpenBB or Yahoo Finance tools to answer: {query}"
+        "rewritten_query": f"⚠️ IMPORTANT: Only use OpenBB tools to answer: {query}"
     }
 
 def pass_and_return_rewritten_query(user_input: str, agent):

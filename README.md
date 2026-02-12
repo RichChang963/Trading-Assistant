@@ -144,4 +144,4 @@ The agent uses LangChain's modern architecture (post v1.0.0).
 
 ## License
 
-MIT License
+AGPLv3 License

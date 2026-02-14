@@ -1,5 +1,4 @@
 from langchain.tools import tool
-from openbb import obb
 import json
 
 
@@ -23,6 +22,8 @@ def get_stock_data(symbol: str, function: str = "quote") -> str:
     Returns:
         JSON string with the requested data or error message
     """
+    from openbb import obb
+    
     try:
         if function == "quote":
             data = obb.equity.price.quote(symbol, provider="yfinance")
@@ -90,7 +91,7 @@ def get_stock_data(symbol: str, function: str = "quote") -> str:
 
 
 @tool
-def get_economic_data(indicator: str, country: str = "united_states") -> str:
+def get_economic_data(indicator: str, country: str = "USA") -> str:
     """
     Fetch economic indicators using OpenBB. This is the ONLY source for economic data.
     
@@ -100,11 +101,13 @@ def get_economic_data(indicator: str, country: str = "united_states") -> str:
             - 'cpi': Consumer Price Index (inflation)
             - 'unemployment': Unemployment rate
             - 'interest_rate': Federal funds rate
-        country: Country code (default: 'united_states')
+        country: ISO country code (default: 'USA'). Examples: 'USA', 'DEU', 'GBR', 'JPN', 'CAN'
     
     Returns:
         JSON string with economic data or error message
     """
+    from openbb import obb
+    
     try:
         indicator_lower = indicator.lower()
         
@@ -165,6 +168,8 @@ def get_market_overview(data_type: str = "indices") -> str:
     Returns:
         JSON string with market data or error message
     """
+    from openbb import obb
+    
     try:
         data_type_lower = data_type.lower()
         

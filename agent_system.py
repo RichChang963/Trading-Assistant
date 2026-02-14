@@ -2,10 +2,6 @@ import os
 import pathlib
 import yaml
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_ollama import ChatOllama
 
 from agents.single_agent import create_all_in_one_agent
 from agents.data_agent import create_data_agent
@@ -44,12 +40,14 @@ def get_llm(provider:str=None):
         raise ValueError(f"{model_api_key} not found in environment")
     
     if provider == "openai":
+        from langchain_openai import ChatOpenAI
         return ChatOpenAI(
             model=api_mode, 
             api_key=api_key,
             temperature=0
         )
     elif provider == "claude":
+        from langchain_anthropic import ChatAnthropic
         return ChatAnthropic(
             model=api_mode,
             api_key=api_key,
@@ -57,12 +55,14 @@ def get_llm(provider:str=None):
             # Anthropic respects tool usage better
         )
     elif provider == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
         return ChatGoogleGenerativeAI(
             model=api_mode,
             api_key=api_key,
             temperature=0
         )
     elif provider == "perplexity":
+        from langchain_openai import ChatOpenAI
         return ChatOpenAI(
             model=api_mode,
             api_key=api_key,
@@ -70,6 +70,7 @@ def get_llm(provider:str=None):
             temperature=0
         )
     elif provider == "openrouter":
+        from langchain_openai import ChatOpenAI
         return ChatOpenAI(
             model=api_mode,
             api_key=api_key,
@@ -77,6 +78,7 @@ def get_llm(provider:str=None):
             temperature=0
         )
     elif provider == "ollama":
+        from langchain_ollama import ChatOllama
         base_url = MODEL_CONFIG.get("OLLAMA_BASE_URL", "http://localhost:11434")
         return ChatOllama(
             model=api_mode,

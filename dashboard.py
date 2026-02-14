@@ -79,14 +79,14 @@ with tab1:
         st.markdown("OpenBB (using Yahoo Finance & OECD as two main sources)")
 
         st.subheader("Example questions - Single Agent")
-        st.markdown("- What is the current price of AAPL stock?")
-        st.markdown("- What's the gold price trend?")
+        st.markdown("- Tell me about Apple stock")
+        st.markdown("- What is the gold price trend?")
         st.markdown("- Get current market indices")
         
         st.subheader("Example questions - Two-Agent System")
         st.markdown("- Analyze gold price trends over the past year")
         st.markdown("- Compare Apple and Microsoft financial performance")
-        st.markdown("- What does the recent CPI data mean for markets?")
+        st.markdown("- What does recent CPI data in the US mean for markets?")
 
         st.divider()
 

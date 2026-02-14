@@ -174,7 +174,7 @@ def get_market_overview(data_type: str = "indices") -> str:
         data_type_lower = data_type.lower()
         
         if data_type_lower == "indices":
-            obb.index.price.historical(
+            data = obb.index.price.historical(
                 symbol=[
                     "^GSPC", "^DJI", "^IXIC", "^FTSE", "^GDAXI", "^FCHI", "^N225", 
                     "^HSI", "^KS11", "000001.SS"

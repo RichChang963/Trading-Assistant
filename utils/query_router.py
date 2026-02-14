@@ -36,14 +36,14 @@ def route_query_to_tool(query: str) -> dict:
             primary = symbols[0]
             alternatives = ', '.join([f"'{s}'" for s in symbols[1:]])
             
-            suggestion = f"Use get_stock_data('{primary}', 'quote') to get {commodity} price. "
+            suggestion = f"IMMEDIATELY call get_stock_data('{primary}', 'quote') to get current {commodity} price data. "
             if alternatives:
-                suggestion += f"Alternative symbols: {alternatives}. "
-            suggestion += f"Answer this question: {query}"
+                suggestion += f"Alternative symbols if needed: {alternatives}. "
+            suggestion += f"Then analyze the data. User query: {query}"
             
             return {
                 "suggested_tool": "get_stock_data",
-                "parameters": {"symbol": primary, "function": "info"},
+                "parameters": {"symbol": primary, "function": "quote"},
                 "rewritten_query": suggestion
             }
     
@@ -52,25 +52,53 @@ def route_query_to_tool(query: str) -> dict:
         # Extract potential ticker
         ticker_match = re.search(r'\b([A-Z]{1,5})\b', query)
         if ticker_match:
+            ticker = ticker_match.group(1)
             return {
                 "suggested_tool": "get_stock_data",
-                "parameters": {"symbol": ticker_match.group(1), "function": "quote"},
-                "rewritten_query": f"Use get_stock_data('{ticker_match.group(1)}', 'quote') to answer: {query}"
+                "parameters": {"symbol": ticker, "function": "quote"},
+                "rewritten_query": f"IMMEDIATELY call get_stock_data('{ticker}', 'quote') to fetch current data, then analyze it. User query: {query}"
             }
     
     # Economic data queries
-    if any(word in query_lower for word in ['gdp', 'inflation', 'cpi', 'unemployment', 'economy']):
+    if any(word in query_lower for word in ['gdp', 'inflation', 'cpi', 'unemployment', 'economy', 'interest rate']):
+        # Determine specific indicator
+        if 'gdp' in query_lower:
+            indicator = 'gdp'
+        elif 'cpi' in query_lower or 'inflation' in query_lower:
+            indicator = 'cpi'
+        elif 'unemployment' in query_lower:
+            indicator = 'unemployment'
+        elif 'interest' in query_lower or 'rate' in query_lower:
+            indicator = 'interest_rate'
+        else:
+            indicator = 'cpi'  # default to CPI
+        
         return {
             "suggested_tool": "get_economic_data",
-            "parameters": {"indicator": "gdp" if "gdp" in query_lower else "cpi"},
-            "rewritten_query": f"Use get_economic_data to answer: {query}"
+            "parameters": {"indicator": indicator, "country": "USA"},
+            "rewritten_query": f"IMMEDIATELY call get_economic_data('{indicator}', 'USA') to fetch current data, then analyze it. User query: {query}"
         }
     
     # Market overview queries
     if any(word in query_lower for word in ['market', 'indices', 'gainers', 'losers', 'active']):
+        # Determine specific data type
+        if 'indices' in query_lower or 'index' in query_lower:
+            data_type = 'indices'
+        elif 'gainer' in query_lower:
+            data_type = 'gainers'
+        elif 'loser' in query_lower:
+            data_type = 'losers'
+        elif 'active' in query_lower:
+            data_type = 'active'
+        elif 'sector' in query_lower:
+            data_type = 'sectors'
+        else:
+            data_type = 'indices'  # default to indices for general "market" queries
+        
         return {
             "suggested_tool": "get_market_overview",
-            "rewritten_query": f"Use get_market_overview to answer: {query}"
+            "parameters": {"data_type": data_type},
+            "rewritten_query": f"IMMEDIATELY call get_market_overview('{data_type}') to fetch current data, then analyze it. User query: {query}"
         }
     
     return {

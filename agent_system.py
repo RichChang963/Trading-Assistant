@@ -3,11 +3,9 @@ import pathlib
 import yaml
 from dotenv import load_dotenv
 
-from agents.single_agent import create_all_in_one_agent
 from agents.data_agent import create_data_agent
 from agents.analysis_agent import create_analysis_agent
 from agents.orchestrator import TwoAgentOrchestrator
-from utils.query_router import pass_and_return_rewritten_query
 
 ROOT_FOLDER = pathlib.Path(__file__).parent
 
@@ -89,15 +87,6 @@ def get_llm(provider:str=None):
         raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'gemini', 'claude', 'perplexity', 'openrouter', or 'ollama'")
 
 
-def create_trading_agent(provider:str=None):
-    """Create a trading assistant agent with OpenBB tools."""
-    llm = get_llm(provider)
-
-    agent = create_all_in_one_agent(llm)
-
-    return  agent
-
-
 def create_two_agent_system(provider:str=None):
     """
     Create a two-agent system: one for data retrieval, one for analysis.
@@ -124,24 +113,11 @@ def run_cli():
     try:
         provider = MODEL_CONFIG.get("LLM_Model_provider").lower()
         
-        # Ask user which mode they want
-        print("Select mode:")
-        print("1. Single Agent (default - all-in-one)")
-        print("2. Two-Agent System (data retrieval + analysis)")
-        mode_choice = input("\nEnter choice (1 or 2, default=1): ").strip() or "1"
-        
-        if mode_choice == "2":
-            print(f"\n🤖 Initializing Two-Agent System with {provider}...")
-            orchestrator = create_two_agent_system(provider)
-            print(f"✅ Two-Agent System ready!")
-            print("   📡 Data Agent: Fetches market data")
-            print("   📊 Analysis Agent: Provides insights")
-            use_two_agent = True
-        else:
-            print(f"\n🤖 Initializing Single Agent with {provider}...")
-            agent = create_trading_agent(provider)
-            print(f"✅ Single Agent ready!")
-            use_two_agent = False
+        print(f"\n🤖 Initializing Agent System with {provider}...")
+        orchestrator = create_two_agent_system(provider)
+        print(f"✅ Agent System ready!")
+        print("   📡 Data Agent: Fetches market data")
+        print("   📊 Analysis Agent: Provides insights")
         
         print("\nType 'exit', 'quit', or 'q' to end the session.\n")
 
@@ -156,10 +132,7 @@ def run_cli():
                 continue
             
             try:
-                if use_two_agent:
-                    response = orchestrator.process_query(user_input, verbose=True)
-                else:
-                    response = pass_and_return_rewritten_query(user_input, agent)
+                response = orchestrator.process_query(user_input, verbose=True)
                 print(f"\nAssistant: {response}\n")
             except Exception as e:
                 print(f"\nError: {str(e)}\n")

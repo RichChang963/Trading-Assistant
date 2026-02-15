@@ -2,20 +2,11 @@
 
 ## Overview
 
-The Trading Assistant supports **single agent** and **two-agent system**. The **two-agent system** separates concerns between data retrieval and analysis for better performance and clearer responsibilities.
+The Trading Assistant supports **two-agent system**. The **two-agent system** separates concerns between data retrieval and analysis for better performance and clearer responsibilities.
 
 ---------------------------------------------------------
 
 ## Architecture
-
-### 🤖 Single Agent Mode
-
-```mermaid
-graph LR
-    A[User Query] --> B[Single Agent]
-    B --> C[Tools + Analysis]
-    C --> D[Response]
-```
 
 ### 🤖🤖 Two-Agent System
 
@@ -71,13 +62,6 @@ graph LR
 
 ### 📊 When to Use
 
-**Use Single Agent when**:
-
-- Quick simple queries
-- Speed is priority
-- Simple data lookups
-- Prefer streamlined approach
-
 **Use Two-Agent System when**:
 
 - Complex queries requiring deep analysis
@@ -90,13 +74,6 @@ graph LR
 ## Example Workflows
 
 ### Query: "What is the gold price trend?"
-
-#### Single Agent
-
-```txt
-1. Agent fetches XAU=F data and analyzes in one step
-2. Returns: Combined response
-```
 
 #### Two-Agent System
 

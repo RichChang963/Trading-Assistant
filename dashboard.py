@@ -2,8 +2,7 @@ import streamlit as st
 from streamlit_markdown import st_markdown
 from pathlib import Path
 import yaml
-from utils.query_router import pass_and_return_rewritten_query
-from agent_system import create_trading_agent, create_two_agent_system
+from agent_system import create_two_agent_system
 
 LLM_LIST = ["gemini", "openai", "claude", "perplexity", "openrouter", "ollama"]
 
@@ -30,10 +29,9 @@ with tab1:
         st.subheader("🤖 Agent Mode")
         agent_mode = st.radio(
             "Select Agent System",
-            options=["Single Agent", "Two-Agent System"],
+            options=["Two-Agent System"],
             index=0,
-            help="Single: All-in-one agent\nTwo-Agent: " \
-            "Separate data retrieval & analysis"
+            help="Two-Agent: Separate data retrieval & analysis"
         )
         
         if agent_mode == "Two-Agent System":
@@ -77,13 +75,11 @@ with tab1:
 
         st.subheader("Data Sourcs")
         st.markdown("OpenBB (using Yahoo Finance & OECD as two main sources)")
-
-        st.subheader("Example questions - Single Agent")
+        
+        st.subheader("Example questions - Two-Agent System")
         st.markdown("- Tell me about Apple stock")
         st.markdown("- What is the gold price trend?")
         st.markdown("- Get current market indices")
-        
-        st.subheader("Example questions - Two-Agent System")
         st.markdown("- Analyze gold price trends over the past year")
         st.markdown("- Compare Apple and Microsoft financial performance")
         st.markdown("- What does recent CPI data in the US mean for markets?")
@@ -116,10 +112,7 @@ with tab1:
                 )
                 if "agent" in st.session_state:
                     del st.session_state.agent
-            else:
-                st.session_state.agent = create_trading_agent(provider=provider)
-                if "orchestrator" in st.session_state:
-                    del st.session_state.orchestrator
+
         st.success(f"✅ {agent_mode} with {provider.capitalize()} loaded!")
 
     # Initialize on first load
@@ -131,13 +124,6 @@ with tab1:
                 )
         except Exception as e:
             st.error(f"Error initializing orchestrator: {str(e)}")
-            st.stop()
-    elif agent_mode == "Single Agent" and "agent" not in st.session_state:
-        try:
-            with st.spinner("Initializing agent..."):
-                st.session_state.agent = create_trading_agent(provider=provider)
-        except Exception as e:
-            st.error(f"Error initializing agent: {str(e)}")
             st.stop()
 
     # Display chat messages
@@ -161,10 +147,6 @@ with tab1:
                     if agent_mode == "Two-Agent System":
                         response = st.session_state.orchestrator.process_query(
                             user_input, verbose=False
-                        )
-                    else:
-                        response = pass_and_return_rewritten_query(
-                            user_input, st.session_state.agent
                         )
                     st.markdown(response)
                     st.session_state.messages.append(

@@ -4,33 +4,19 @@
 
 ### When to Use Each Mode
 
-| Scenario | Single Agent | Two-Agent System |
-|----------|--------------|------------------|
-| Quick price lookup | ✅ Recommended | ⚪ Works but slower |
-| Deep analysis needed | ⚪ Basic | ✅ Recommended |
-| Debugging data issues | ❌ Hard to isolate | ✅ Easy to debug |
-| Speed priority | ✅ Faster | ⚪ Slightly slower |
-| Need data transparency | ⚪ Mixed output | ✅ Clear separation |
-| Complex queries | ⚪ Can get confused | ✅ Better structured |
-| Simple questions | ✅ Perfect | ⚪ Overkill |
+| Scenario | Two-Agent System |
+|----------|------------------|
+| Quick price lookup | ⚪ Works but slower |
+| Deep analysis needed | ✅ Recommended |
+| Debugging data issues | ✅ Easy to debug |
+| Speed priority | ⚪ Slightly slower |
+| Need data transparency | ✅ Clear separation |
+| Complex queries | ✅ Better structured |
+| Simple questions | ⚪ Overkill |
 
 -----------------------------------------------------
 
 ## Architecture Diagrams
-
-### Single Agent Mode
-
-```mermaid
-graph LR
-    A[User Query] --> B
-    
-    subgraph B[Single Agent]
-        C[Data Tools]
-        C --> D[Analysis Logic]
-    end
-    
-    B --> E[Response]
-```
 
 ### Two-Agent System
 
@@ -57,16 +43,6 @@ graph LR
 
 ## Response Format Comparison
 
-### Single Agent Response
-
-```txt
-Here's the information about gold:
-
-The current price of gold (XAU) is $2,123.45 per ounce, 
-up 1.2% from yesterday. This represents a bullish trend 
-with strong support at $2,100...
-```
-
 ### Two-Agent System Response
 
 ```md
@@ -91,13 +67,6 @@ This increase aligns with...
 -----------------------------------------------------
 
 ## Example Use Cases
-
-### Best for Single Agent
-
-- "What's AAPL stock price?"
-- "Show me TSLA quote"
-- "Get current market indices"
-- Simple data lookups
 
 ### Best for Two-Agent System
 

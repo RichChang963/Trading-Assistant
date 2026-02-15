@@ -5,7 +5,7 @@ An intelligent trading assistant powered by LangChain that integrates with OpenB
 ## Features
 
 - 🤖 **Multi-LLM Support**: Choose between OpenAI, Google Gemini, Anthropic Claude, Perplexity, OpenRouter, or Ollama
-- � **Two-Agent System**: Separate data retrieval from analysis for better performance and clarity
+- � **Multi-Agent System**: Separate data retrieval from analysis for better performance and clarity
 - 📊 **Real-time Market Data**: Access stock quotes, historical data, news, and company profiles via OpenBB Tools (using Yahoo FInance & OECD as two main sources)
 - 📈 **Economic Indicators**: Fetch GDP, CPI, and other economic data
 - 💬 **Conversational Interface**: Natural language queries for financial data
@@ -65,20 +65,13 @@ python agent_system.py
 
 You'll be prompted to choose between:
 
-- **Single Agent Mode** (1): All-in-one agent handles everything
-- **Two-Agent System** (2): Separate data retrieval and analysis
+- **Two-Agent System**: Separate data retrieval and analysis
 
 Example interaction with Two-Agent System:
 
 ```bash
-Select mode:
-1. Single Agent (default - all-in-one)
-2. Two-Agent System (data retrieval + analysis)
-
-Enter choice (1 or 2, default=1): 2
-
-🤖 Initializing Two-Agent System with gemini...
-✅ Two-Agent System ready!
+🤖 Initializing Agent System with gemini...
+✅ Agent System ready!
    📡 Data Agent: Fetches market data
    📊 Analysis Agent: Provides insights
 
@@ -101,23 +94,9 @@ The dashboard will open in your browser at `http://localhost:8501`. The app will
 
 In the sidebar, you can switch between:
 
-- **Single Agent**: Traditional all-in-one approach
 - **Two-Agent System**: Separate data fetching and analysis
 
 ## Agent Modes
-
-### Single Agent Mode
-
-Traditional approach where one agent handles both data retrieval and analysis.
-
-```mermaid
-graph LR
-    A[User Query] --> B[Single Agent]
-    B --> C[Tools + Analysis]
-    C --> D[Response]
-```
-
-### Two-Agent System
 
 Modern architecture separating concerns:
 

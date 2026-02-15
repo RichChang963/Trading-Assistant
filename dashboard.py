@@ -1,3 +1,4 @@
+import uuid
 import streamlit as st
 from streamlit_markdown import st_markdown
 from pathlib import Path
@@ -89,6 +90,8 @@ with tab1:
     # Initialize session state
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    if "session_id" not in st.session_state:
+        st.session_state.session_id = f"ui-{uuid.uuid4().hex}"
 
     # Reinitialize if provider or mode changes
     reinit_needed = False
@@ -146,7 +149,9 @@ with tab1:
                 try:
                     if agent_mode == "Two-Agent System":
                         response = st.session_state.orchestrator.process_query(
-                            user_input, verbose=False
+                            user_input,
+                            verbose=False,
+                            session_id=st.session_state.session_id,
                         )
                     st.markdown(response)
                     st.session_state.messages.append(

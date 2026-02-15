@@ -4,6 +4,8 @@ langchain-anthropic==1.3.1
 langchain-google-genai==4.2.0
 langchain-ollama==1.0.1
 
+langgraph==1.0.8
+
 # Optional but commonly required with newer LangChain installs:
 langchain-community==0.4.1
 

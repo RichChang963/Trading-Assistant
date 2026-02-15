@@ -1,11 +1,11 @@
 import os
 import pathlib
+import uuid
 import yaml
 from dotenv import load_dotenv
 
-from agents.data_agent import create_data_agent
 from agents.analysis_agent import create_analysis_agent
-from agents.orchestrator import TwoAgentOrchestrator
+from agents.orchestrator import LangGraphOrchestrator
 
 ROOT_FOLDER = pathlib.Path(__file__).parent
 
@@ -99,11 +99,10 @@ def create_two_agent_system(provider:str=None):
     """
     llm = get_llm(provider)
 
-    data_agent = create_data_agent(llm)
     analysis_agent = create_analysis_agent(llm)
     
     # Return orchestrator that manages both
-    return TwoAgentOrchestrator(data_agent, analysis_agent)
+    return LangGraphOrchestrator(analysis_agent)
 
 
 def run_cli():
@@ -121,6 +120,8 @@ def run_cli():
         
         print("\nType 'exit', 'quit', or 'q' to end the session.\n")
 
+        session_id = f"cli-{uuid.uuid4().hex}"
+
         while True:
             user_input = input("You: ").strip()
 
@@ -132,7 +133,11 @@ def run_cli():
                 continue
             
             try:
-                response = orchestrator.process_query(user_input, verbose=True)
+                response = orchestrator.process_query(
+                    user_input,
+                    verbose=True,
+                    session_id=session_id,
+                )
                 print(f"\nAssistant: {response}\n")
             except Exception as e:
                 print(f"\nError: {str(e)}\n")

@@ -1,6 +1,6 @@
-# Trading Assistant with LangChain & OpenBB API tools
+# Trading Assistant with LangChain, LangGraph & OpenBB API tools
 
-An intelligent trading assistant powered by LangChain that integrates with OpenBB and Yahoo Finance for real-time market data. Supports multiple LLM providers: OpenAI, Google Gemini, Anthropic Claude, Perplexity, OpenRouter, and Ollama.
+An intelligent trading assistant powered by LangChain & LangGraph that integrates with OpenBB and Yahoo Finance for real-time market data. Supports multiple LLM providers: OpenAI, Google Gemini, Anthropic Claude, Perplexity, OpenRouter, and Ollama.
 
 ## Features
 
@@ -116,10 +116,6 @@ graph TD
 - More accurate commodity symbol mapping
 
 See [MULTI-AGENT_SYSTEM.md](docs/MULTI-AGENT_SYSTEM.md) for detailed documentation.
-
-## Architecture
-
-The agent uses LangChain's modern architecture (post v1.0.0).
 
 ## License
 

@@ -124,13 +124,13 @@ def get_economic_data(indicator: str, country: str = "USA") -> str:
         indicator_lower = indicator.lower()
 
         if indicator_lower == "gdp":
-            data = obb.economy.gdp(country=country, provider="oecd")
+            data = obb.economy.gdp(country=country, start_date="2025-01-01", provider="oecd")
         elif indicator_lower == "cpi":
-            data = obb.economy.cpi(country=country, provider="oecd")
+            data = obb.economy.cpi(country=country, start_date="2025-01-01", provider="oecd")
         elif indicator_lower in ["unemployment", "unemployment_rate"]:
-            data = obb.economy.unemployment(country=country, provider="oecd")
+            data = obb.economy.unemployment(country=country, start_date="2025-01-01", provider="oecd")
         elif indicator_lower in ["interest_rate", "fed_funds"]:
-            data = obb.economy.interest_rates(country=country, provider="oecd")
+            data = obb.economy.interest_rates(country=country, start_date="2025-01-01", provider="oecd")
         else:
             return json.dumps({
                 "error": f"Unknown indicator: {indicator}",

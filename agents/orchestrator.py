@@ -130,7 +130,7 @@ Please analyze this data and provide insights addressing the user's question."""
             print("="*60 + "\n")
         
         # Format final response
-        final_response = f"""## 📊 Analysis Results
+        final_response = f"""
 
 {analysis_response}
 
@@ -142,7 +142,7 @@ Please analyze this data and provide insights addressing the user's question."""
 
 </details>
 """
-        
+
         return final_response
     
     def _extract_message_content(self, message) -> str:
@@ -345,9 +345,7 @@ class LangGraphOrchestrator:
 
         analysis_response = state.get("analysis_response", "")
         data_response = state.get("data_response", "")
-
         final_response = (
-            "## 📊 Analysis Results\n\n"
             f"{analysis_response}\n\n"
             "---\n"
             "<details>\n"

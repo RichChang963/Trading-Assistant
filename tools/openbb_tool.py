@@ -4,23 +4,29 @@ import json
 
 @tool
 def get_stock_data(symbol: str, function: str = "quote") -> str:
-    """
-    Fetch stock market data using OpenBB. This is the ONLY source for stock data.
-    
-    Args:
-        symbol: Stock ticker symbol (e.g., 'AAPL', 'TSLA')
-        function: Type of data to fetch. Options:
-            - 'quote': Get current stock quote (price, volume, market cap)
-            - 'historical': Get historical price data (OHLCV)
-            - 'news': Get latest company news
-            - 'profile': Get company profile and fundamentals
-            - 'income': Get income statement
-            - 'balance': Get balance sheet
-            - 'cash': Get cash flow statement
-            - 'metrics': Get key financial metrics
-    
-    Returns:
-        JSON string with the requested data or error message
+    """Fetch stock market data using OpenBB.
+
+    This is the only source for stock data.
+
+    Parameters
+    ----------
+    symbol : str
+        Stock ticker symbol (e.g., "AAPL", "TSLA").
+    function : str, optional
+        Type of data to fetch. Options:
+        - "quote": Get current stock quote (price, volume, market cap).
+        - "historical": Get historical price data (OHLCV).
+        - "news": Get latest company news.
+        - "profile": Get company profile and fundamentals.
+        - "income": Get income statement.
+        - "balance": Get balance sheet.
+        - "cash": Get cash flow statement.
+        - "metrics": Get key financial metrics.
+
+    Returns
+    -------
+    str
+        JSON string with the requested data or an error message.
     """
     from openbb import obb
     
@@ -92,19 +98,25 @@ def get_stock_data(symbol: str, function: str = "quote") -> str:
 
 @tool
 def get_economic_data(indicator: str, country: str = "USA") -> str:
-    """
-    Fetch economic indicators using OpenBB. This is the ONLY source for economic data.
-    
-    Args:
-        indicator: Economic indicator. Options:
-            - 'gdp': Gross Domestic Product
-            - 'cpi': Consumer Price Index (inflation)
-            - 'unemployment': Unemployment rate
-            - 'interest_rate': Federal funds rate
-        country: ISO country code (default: 'USA'). Examples: 'USA', 'DEU', 'GBR', 'JPN', 'CAN'
-    
-    Returns:
-        JSON string with economic data or error message
+    """Fetch economic indicators using OpenBB.
+
+    This is the only source for economic data.
+
+    Parameters
+    ----------
+    indicator : str
+        Economic indicator. Options:
+        - "gdp": Gross Domestic Product.
+        - "cpi": Consumer Price Index (inflation).
+        - "unemployment": Unemployment rate.
+        - "interest_rate": Federal funds rate.
+    country : str, optional
+        ISO country code. Examples: "USA", "DEU", "GBR", "JPN", "CAN".
+
+    Returns
+    -------
+    str
+        JSON string with economic data or an error message.
     """
     from openbb import obb
     
@@ -154,19 +166,24 @@ def get_economic_data(indicator: str, country: str = "USA") -> str:
 
 @tool
 def get_market_overview(data_type: str = "indices") -> str:
-    """
-    Fetch general market overview data using OpenBB. This is the ONLY source for market data.
-    
-    Args:
-        data_type: Type of market data. Options:
-            - 'indices': Major market indices (S&P 500, NASDAQ, DOW, etc.)
-            - 'gainers': Top gaining stocks
-            - 'losers': Top losing stocks
-            - 'active': Most actively traded stocks
-            - 'sectors': Sector performance
-    
-    Returns:
-        JSON string with market data or error message
+    """Fetch general market overview data using OpenBB.
+
+    This is the only source for market data.
+
+    Parameters
+    ----------
+    data_type : str, optional
+        Type of market data. Options:
+        - "indices": Major market indices (S&P 500, NASDAQ, DOW, etc.).
+        - "gainers": Top gaining stocks.
+        - "losers": Top losing stocks.
+        - "active": Most actively traded stocks.
+        - "sectors": Sector performance.
+
+    Returns
+    -------
+    str
+        JSON string with market data or an error message.
     """
     from openbb import obb
     

@@ -2,9 +2,19 @@ import re
 
 
 def route_query_to_tool(query: str) -> dict:
-    """
-    Pre-process user queries to suggest the appropriate tool.
+    """Suggest the appropriate tool for a user query.
+
     This helps guide the LLM to use tools instead of web search.
+
+    Parameters
+    ----------
+    query : str
+        Raw user query text.
+
+    Returns
+    -------
+    dict
+        Routing information including suggested tool and parameters.
     """
     query_lower = query.lower()
     
@@ -107,7 +117,20 @@ def route_query_to_tool(query: str) -> dict:
     }
 
 def pass_and_return_rewritten_query(user_input: str, agent):
-    """Route the user query to suggest tool usage and return the rewritten query response."""
+    """Route a user query and return the rewritten response.
+
+    Parameters
+    ----------
+    user_input : str
+        Raw user query.
+    agent : object
+        Agent used to process the rewritten query.
+
+    Returns
+    -------
+    str
+        Response text produced by the agent.
+    """
     routing_info = route_query_to_tool(user_input)
     enhanced_input = routing_info['rewritten_query']
     

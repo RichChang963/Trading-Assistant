@@ -1,5 +1,7 @@
-"""
-Two-Agent Orchestrator - Coordinates between data retrieval and analysis agents
+"""Two-agent orchestrator coordinating data retrieval and analysis.
+
+This module defines orchestrators that route queries, call tools, and format
+responses.
 """
 from typing import Dict, Any, Optional, TypedDict
 import json
@@ -26,38 +28,45 @@ class GraphState(TypedDict, total=False):
 
 
 class TwoAgentOrchestrator:
-    """
-    Orchestrates workflow between data agent and analysis agent.
-    
+    """Orchestrate workflow between data and analysis agents.
+
+    Notes
+    -----
     Workflow:
-    1. Receive user query
-    2. Route query to determine data needs
-    3. Data agent fetches required data
-    4. Analysis agent analyzes the data
-    5. Return combined result to user
+    1. Receive user query.
+    2. Route query to determine data needs.
+    3. Data agent fetches required data.
+    4. Analysis agent analyzes the data.
+    5. Return combined result to the user.
     """
     
     def __init__(self, data_agent, analysis_agent):
-        """
-        Initialize orchestrator with both agents.
-        
-        Args:
-            data_agent: Agent specialized in data retrieval
-            analysis_agent: Agent specialized in analysis
+        """Initialize orchestrator with both agents.
+
+        Parameters
+        ----------
+        data_agent : object
+            Agent specialized in data retrieval.
+        analysis_agent : object
+            Agent specialized in analysis.
         """
         self.data_agent = data_agent
         self.analysis_agent = analysis_agent
         
     def process_query(self, user_query: str, verbose: bool = True) -> str:
-        """
-        Process user query through both agents.
-        
-        Args:
-            user_query: User's question or request
-            verbose: Whether to print intermediate steps
-            
-        Returns:
-            Final response combining data and analysis
+        """Process a user query through both agents.
+
+        Parameters
+        ----------
+        user_query : str
+            User question or request.
+        verbose : bool, optional
+            Whether to print intermediate steps.
+
+        Returns
+        -------
+        str
+            Final response combining data and analysis.
         """
         if verbose:
             print("\n" + "="*60)
@@ -137,7 +146,18 @@ Please analyze this data and provide insights addressing the user's question."""
         return final_response
     
     def _extract_message_content(self, message) -> str:
-        """Extract content from message object."""
+        """Extract content from a message object.
+
+        Parameters
+        ----------
+        message : object
+            Message object returned by the agent.
+
+        Returns
+        -------
+        str
+            Extracted text content.
+        """
         if hasattr(message, "content"):
             content = message.content
             # Handle list content (like Gemini)
@@ -156,9 +176,7 @@ Please analyze this data and provide insights addressing the user's question."""
 
 
 class LangGraphOrchestrator:
-    """
-    LangGraph-based orchestrator that routes, calls tools, and analyzes data.
-    """
+    """Orchestrator that routes, calls tools, and analyzes data using LangGraph."""
 
     def __init__(self, analysis_agent, checkpointer: Optional[MemorySaver] = None):
         self.analysis_agent = analysis_agent

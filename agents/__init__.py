@@ -1,5 +1,5 @@
-"""
-Multi-agent system for trading assistance.
+"""Multi-agent system for trading assistance.
+
 Separates data retrieval from analysis.
 """
 

@@ -28,8 +28,24 @@ LLM_MODEL_API_DICT = {
 }
     
 
-def get_llm(provider:str=None):
-    """Get LLM with strict tool-only configuration."""
+def get_llm(provider: str = None):
+    """Get LLM with strict tool-only configuration.
+
+    Parameters
+    ----------
+    provider : str or None
+        LLM provider name.
+
+    Returns
+    -------
+    object
+        Initialized LLM client.
+
+    Raises
+    ------
+    ValueError
+        If the provider is unknown or the API key is missing.
+    """
     model_api_key = LLM_MODEL_API_DICT.get(provider, "")
     api_key = os.getenv(model_api_key) if model_api_key else None
     api_mode = MODEL_CONFIG.get(f"{provider.upper()}_MODEL", "gpt-4o-mini")
@@ -87,15 +103,18 @@ def get_llm(provider:str=None):
         raise ValueError(f"Unknown provider: {provider}. Use 'openai', 'gemini', 'claude', 'perplexity', 'openrouter', or 'ollama'")
 
 
-def create_two_agent_system(provider:str=None):
-    """
-    Create a two-agent system: one for data retrieval, one for analysis.
-    
-    Args:
-        provider: LLM provider (openai, claude, gemini, etc.)
-        
-    Returns:
-        TwoAgentOrchestrator instance that coordinates both agents
+def create_two_agent_system(provider: str = None):
+    """Create a two-agent system for data retrieval and analysis.
+
+    Parameters
+    ----------
+    provider : str or None
+        LLM provider name (openai, claude, gemini, etc.).
+
+    Returns
+    -------
+    LangGraphOrchestrator
+        Orchestrator instance that coordinates both agents.
     """
     llm = get_llm(provider)
 
@@ -106,7 +125,7 @@ def create_two_agent_system(provider:str=None):
 
 
 def run_cli():
-    """CLI function to run the trading assistant."""
+    """Run the trading assistant CLI."""
     print("=== Welcome to the Trading Assistant CLI ===\n")
     
     try:
@@ -146,7 +165,7 @@ def run_cli():
 
 
 def main():
-    """Main function - defaults to CLI."""
+    """Run the CLI entry point."""
     run_cli()
 
 

@@ -1,5 +1,6 @@
-"""
-Data Retrieval Agent - Specialized in fetching market data from APIs
+"""Data retrieval agent for fetching market data.
+
+Provides a helper to create a data agent configured with the system prompt.
 """
 import pathlib
 from langchain.agents import create_agent

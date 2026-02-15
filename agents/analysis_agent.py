@@ -1,5 +1,6 @@
-"""
-Analysis Agent - Specialized in analyzing financial data and providing insights
+"""Analysis agent for interpreting financial data.
+
+Provides a helper to create an analysis agent configured with the system prompt.
 """
 import pathlib
 from langchain.agents import create_agent

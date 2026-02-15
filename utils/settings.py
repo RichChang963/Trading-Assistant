@@ -1,3 +1,5 @@
+import json
+import pandas as pd
 import pathlib
 import re
 import pycountry
@@ -93,3 +95,68 @@ def resolve_country_from_query(raw_query: str) -> str | None:
                 continue
 
     return None
+
+
+def json_to_dataframe(raw_json: str, debug: bool = False) -> pd.DataFrame | None:
+    """Convert a JSON string to a DataFrame, if possible."""
+    try:
+        parsed = json.loads(raw_json)
+    except Exception:
+        return None
+
+    if isinstance(parsed, dict) and parsed.get("success") is False:
+        return None
+
+    data = parsed.get("data") if isinstance(parsed, dict) and "data" in parsed else parsed
+
+    if isinstance(data, list):
+        col = "date" if data and isinstance(data[0], str) and "-" in data[0] else "value"
+        return pd.DataFrame({col: data})
+
+    if isinstance(data, dict):
+        list_items = [(k, v) for k, v in data.items() if isinstance(v, list)]
+        if list_items:
+            lengths = [len(v) for _, v in list_items]
+            if len(set(lengths)) == 1:
+                n_rows = lengths[0]
+                records = [{k: v[i] for k, v in list_items} for i in range(n_rows)]
+                df = pd.DataFrame(records)
+                # Add scalar metadata from the data object.
+                for mk, mv in data.items():
+                    if mk not in dict(list_items) and not isinstance(mv, list):
+                        df[mk] = mv
+                # Add scalar metadata from the outer payload.
+                if isinstance(parsed, dict):
+                    for mk, mv in parsed.items():
+                        if mk != "data" and not isinstance(mv, (dict, list)):
+                            df[mk] = mv
+                return df
+    
+    # Extract & debug nested
+    nested_key = next((k for k in ['data', 'records'] if k in data), None)
+    if nested_key:
+        nested = data[nested_key]
+        if debug: print(f"Processing {nested_key}:", nested.keys())
+        
+        list_items = [(k, nested[k]) for k in nested if isinstance(nested[k], list)]
+        if debug: print("Lists found:", len(list_items), [k for k,_ in list_items])
+        
+        if len(list_items) >= 1:
+            lengths = [len(v) for _,v in list_items]
+            if debug: print("Lengths:", lengths, "Uniform?", len(set(lengths)) == 1)
+            
+            if len(set(lengths)) == 1:
+                n_rows = lengths[0]
+                records = [{k: v[i] for k,v in list_items} for i in range(n_rows)]
+                df = pd.DataFrame(records)
+                # Metadata cols
+                for mk in data:
+                    if mk != nested_key:
+                        df[mk] = data[mk]
+                if debug: print(f"SUCCESS: {n_rows}x{len(list_items)}")
+                return df
+    
+    # Fallback
+    df = pd.json_normalize(data)
+    if debug: print("Fallback shape:", df.shape)
+    return df

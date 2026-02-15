@@ -1,11 +1,30 @@
 import uuid
+import re
+from pathlib import Path
 import streamlit as st
 from streamlit_markdown import st_markdown
-from pathlib import Path
 import yaml
+
 from agent_system import create_two_agent_system
+from utils.settings import json_to_dataframe
 
 LLM_LIST = ["gemini", "openai", "claude", "perplexity", "openrouter", "ollama"]
+
+
+def _extract_raw_json(response_text: str) -> tuple[str, str | None]:
+    """Split assistant response into analysis text and raw JSON block."""
+    details_pattern = re.compile(
+        r"<details>.*?<summary>.*?</summary>\s*(.*?)\s*</details>",
+        re.DOTALL | re.IGNORECASE,
+    )
+    match = details_pattern.search(response_text)
+    if not match:
+        return response_text.strip(), None
+
+    raw_json = match.group(1).strip()
+    analysis_text = details_pattern.sub("", response_text).strip()
+    return analysis_text, raw_json
+
 
 # Load configuration
 with open("config.yaml", "r") as f:
@@ -132,6 +151,9 @@ with tab1:
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            df = message.get("dataframe")
+            if df is not None:
+                st.dataframe(df, use_container_width=True)
 
     # Chat input
     user_input = st.chat_input("Ask me about stocks, markets, or economic data...")
@@ -152,9 +174,18 @@ with tab1:
                             verbose=False,
                             session_id=st.session_state.session_id,
                         )
-                    st.markdown(response)
+                    analysis_text, raw_json = _extract_raw_json(response)
+
+                    df = json_to_dataframe(raw_json, debug=True) if raw_json else None
+                    st.markdown(analysis_text)
+                    if df is not None:
+                        st.dataframe(df, use_container_width=True)
                     st.session_state.messages.append(
-                        {"role": "assistant", "content": response}
+                        {
+                            "role": "assistant",
+                            "content": analysis_text,
+                            # "dataframe": df,
+                        }
                     )
                 except Exception as e:
                     error_msg = f"Error: {str(e)}"

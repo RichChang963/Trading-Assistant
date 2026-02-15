@@ -1,5 +1,5 @@
 import re
-
+from utils.settings import resolve_country_from_query
 
 def route_query_to_tool(query: str) -> dict:
     """Suggest the appropriate tool for a user query.
@@ -83,10 +83,12 @@ def route_query_to_tool(query: str) -> dict:
         else:
             indicator = 'cpi'  # default to CPI
         
+        resolved_country = resolve_country_from_query(query) or "USA"
+
         return {
             "suggested_tool": "get_economic_data",
-            "parameters": {"indicator": indicator, "country": "USA"},
-            "rewritten_query": f"IMMEDIATELY call get_economic_data('{indicator}', 'USA') to fetch current data, then analyze it. User query: {query}"
+            "parameters": {"indicator": indicator, "country": resolved_country},
+            "rewritten_query": f"IMMEDIATELY call get_economic_data('{indicator}', '{resolved_country}') to fetch current data, then analyze it. User query: {query}"
         }
     
     # Market overview queries

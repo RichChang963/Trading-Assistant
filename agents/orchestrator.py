@@ -191,7 +191,7 @@ class LangGraphOrchestrator:
     ) -> str:
         if verbose:
             print("\n" + "=" * 60)
-            print("🤖 LANGGRAPH TWO-AGENT SYSTEM ACTIVATED")
+            print("🤖 TWO-AGENT SYSTEM ACTIVATED")
             print("=" * 60)
 
         result = self.graph.invoke(
@@ -284,7 +284,6 @@ class LangGraphOrchestrator:
         verbose = state.get("verbose", False)
 
         if verbose:
-            print(f"\n📍 PHASE 1: DATA RETRIEVAL")
             print(f"   Tool call: {routing_info.get('suggested_tool')}")
 
         try:
@@ -299,7 +298,6 @@ class LangGraphOrchestrator:
 
         if verbose:
             print("\n✅ Data retrieved successfully")
-            print(f"   Preview: {data_response[:150]}...")
 
         return {"data_response": data_response}
 

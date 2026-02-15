@@ -1,6 +1,6 @@
 from langchain.tools import tool
 import json
-
+import pycountry
 
 @tool
 def get_stock_data(symbol: str, function: str = "quote") -> str:
@@ -122,15 +122,37 @@ def get_economic_data(indicator: str, country: str = "USA") -> str:
     
     try:
         indicator_lower = indicator.lower()
+        country_input = country.strip()
+        country_lower = country_input.lower()
+        country_aliases = {
+            "usa": "USA",
+            "us": "USA",
+            "united states": "USA",
+            "united states of america": "USA",
+            "uk": "GBR",
+            "united kingdom": "GBR",
+            "great britain": "GBR",
+        }
+        resolved_country = country_aliases.get(country_lower)
+        if resolved_country is None:
+            if len(country_input) == 3 and country_input.isalpha():
+                resolved_country = country_input.upper()
+            else:
+                try:
+                    resolved_country = pycountry.countries.lookup(
+                        country_input
+                    ).alpha_3
+                except Exception:
+                    resolved_country = country_input.upper()
         
         if indicator_lower == "gdp":
-            data = obb.economy.gdp(country=country, provider="oecd")
+            data = obb.economy.gdp(country=resolved_country, provider="oecd")
         elif indicator_lower == "cpi":
-            data = obb.economy.cpi(country=country, provider="oecd")
+            data = obb.economy.cpi(country=resolved_country, provider="oecd")
         elif indicator_lower in ["unemployment", "unemployment_rate"]:
-            data = obb.economy.unemployment(country=country, provider="oecd")
+            data = obb.economy.unemployment(country=resolved_country, provider="oecd")
         elif indicator_lower in ["interest_rate", "fed_funds"]:
-            data = obb.economy.interest_rates(country=country, provider="oecd")
+            data = obb.economy.interest_rates(country=resolved_country, provider="oecd")
         else:
             return json.dumps({
                 "error": f"Unknown indicator: {indicator}",
@@ -153,13 +175,13 @@ def get_economic_data(indicator: str, country: str = "USA") -> str:
             {
                 "success": True, 
                 "indicator": indicator, 
-                "country": country, 
+                "country": resolved_country,
                 "data": result
             }, indent=2, default=str)
     except Exception as e:
         return json.dumps({
             "success": False,
-            "error": f"Error fetching {indicator} data for {country}: {str(e)}",
+            "error": f"Error fetching {indicator} data for {resolved_country}: {str(e)}",
             "message": "OpenBB does not have this data available"
         }, indent=2)
 

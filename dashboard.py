@@ -80,10 +80,9 @@ with tab1:
         st.subheader("Example questions - Two-Agent System")
         st.markdown("- Tell me about Apple stock")
         st.markdown("- What is the gold price trend?")
-        st.markdown("- Get current market indices")
         st.markdown("- Analyze gold price trends over the past year")
         st.markdown("- Compare Apple and Microsoft financial performance")
-        st.markdown("- What does recent CPI data in the US mean for markets?")
+        st.markdown("- What does recent interest rate in Germany look like?")
 
         st.divider()
 

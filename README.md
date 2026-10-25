@@ -89,7 +89,7 @@ Start the backend API (port 8000):
 uv run uvicorn api:app --reload
 ```
 
-In a second terminal, start the React frontend (requires Node.js):
+In a second terminal, start the React frontend (requires Node.js >= 26.12.1):
 
 ```bash
 cd frontend

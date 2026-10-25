@@ -81,17 +81,25 @@ You: Get me the latest news about Tesla
 [Agent retrieves TSLA news then analyzes sentiment]
 ```
 
-### 2. Running the Streamlit Dashboard
+### 2. Running the Web App (React + FastAPI)
 
-To run the Streamlit dashboard:
+Start the backend API (port 8000):
 
 ```bash
-uv run streamlit run dashboard.py
+uv run uvicorn api:app --reload
 ```
 
-The dashboard will open in your browser at `http://localhost:8501`. The app will enable you to interact in the chatbox.
+In a second terminal, start the React frontend (requires Node.js):
 
-In the sidebar, you can switch between:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The app opens at `http://localhost:5173`; the dev server proxies `/api` to the backend. The app will enable you to interact in the chatbox.
+
+In the sidebar, you can switch the model provider and clear the chat:
 
 - **Two-Agent System**: Separate data fetching and analysis
 

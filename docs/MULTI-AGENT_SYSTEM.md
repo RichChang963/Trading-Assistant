@@ -92,7 +92,8 @@ graph LR
 Trading-Assistant/
 ├── .github/prompts/           # default system prompts for agents
 ├── agent_system.py            # Main entry point
-├── dashboard.py               # Streamlit UI
+├── api.py                     # FastAPI backend
+├── frontend/                  # React UI (Vite)
 ├── agents/
 │   ├── __init__.py            # Module init
 │   ├── data_agent.py          # Data retrieval agent

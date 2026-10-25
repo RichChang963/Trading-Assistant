@@ -8,6 +8,7 @@ An intelligent trading assistant built with LangChain, LangGraph and OpenBB. A L
 - 🧩 **Multi-Agent System**: Separate data retrieval from analysis for better performance and clarity
 - 📊 **Real-time Market Data**: Access stock quotes, historical data, news, and company profiles via OpenBB Tools (using Yahoo Finance & OECD as two main sources)
 - 📈 **Economic Indicators**: Fetch GDP, CPI, and other economic data
+- 🧠 **Research Memory**: Past analyses are stored in pgvector and recalled as context for similar questions
 - 💬 **Conversational Interface**: Natural language queries for financial data
 - 🌟 **Commodity Mapping**: Automatic symbol resolution (Gold→XAU, Silver→XAG, etc.)
 
@@ -78,17 +79,20 @@ You: Get me the latest news about Tesla
 graph TD
     A[User Query] --> B[Query Router]
     B -->|rewritten prompt| C[Data Agent]
-    C -->|OpenBB tools| D[Analysis Agent]
+    C -->|OpenBB tools| M[Recall Memory]
+    M -->|similar past analyses| D[Analysis Agent]
+    F[(Neon Postgres / pgvector)] -.->|research_memories| M
     D --> E[Format Response]
-    E --> F[(Neon Postgres)]
+    E --> F
 ```
 
 1. The query router adds hints to the question, such as commodity symbols (Gold → `XAU=F`, Oil → `CL=F`, …) and countries.
 2. The data agent (an LLM with the OpenBB tools) fetches the data, guided by the rewritten prompt.
-3. The analysis agent (your chosen LLM) interprets the data, and the response includes the analysis plus an expandable block with the raw tool output.
-4. Conversation state is checkpointed per `session_id` (LangGraph thread).
+3. The recall memory step searches `research_memories` (pgvector cosine similarity) for the user's earlier analyses of similar questions, filtered by symbol when there is one. Up to 3 matches with similarity ≥ 0.5 are kept; if the search fails, the step is skipped.
+4. The analysis agent (your chosen LLM) interprets the data, using the recalled analyses as dated background (the current data takes precedence). The response includes the analysis plus an expandable block with the raw tool output.
+5. Conversation state is checkpointed per `session_id` (LangGraph thread).
 
-Each run is saved to `analysis_runs` (`pending` / `completed` / `failed`) with its raw data in `api_snapshots`. Completed analyses are also embedded into `research_memories` for semantic search. Database errors are logged and never block the answer. See [docs/MULTI-AGENT_SYSTEM.md](docs/MULTI-AGENT_SYSTEM.md) for details.
+Each run is saved to `analysis_runs` (`pending` / `completed` / `failed`) with its raw data in `api_snapshots`. Completed analyses are also embedded into `research_memories`, which the recall memory step searches on later questions. Database errors are logged and never block the answer. See [docs/MULTI-AGENT_SYSTEM.md](docs/MULTI-AGENT_SYSTEM.md) for details.
 
 ## Architecture
 
@@ -97,7 +101,7 @@ Each run is saved to `analysis_runs` (`pending` / `completed` / `failed`) with i
 | UI | React 19 + Vite (proxies `/api` to `:8000`) | `frontend/` |
 | API | FastAPI + Uvicorn | `backend/api.py` |
 | CLI | Interactive terminal chat | `backend/agent_system.py` |
-| Agents | LangGraph orchestrator, data agent, analysis agent, query router, prompts | `skills/agents/`, `skills/utils/`, `skills/prompts/` |
+| Agents | LangGraph orchestrator, data agent, memory recall, analysis agent, query router, prompts | `skills/agents/`, `skills/utils/`, `skills/prompts/` |
 | Market data | OpenBB (Yahoo Finance, OECD) | `skills/tools/openbb_tool.py` |
 | Persistence | Neon Postgres via SQLAlchemy + psycopg 3, pgvector | `backend/db/` |
 | Chat state | LangGraph `PostgresSaver` checkpointer (falls back to in-memory) | `backend/db/connection.py` |

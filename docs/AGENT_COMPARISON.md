@@ -30,7 +30,8 @@ graph LR
         C1[Tools<br/>- OpenBB<br/>- Yahoo<br/>]
     end
     
-    C --> D
+    C --> M[Recall Memory<br/>pgvector]
+    M --> D
     
     subgraph D[Analysis Agent]
         D1[Insights<br/>Patterns<br/>Context]
@@ -38,6 +39,7 @@ graph LR
     
     D --> E[Combined Response]
     E --> F[(Neon Postgres)]
+    F -.->|research_memories| M
 ```
 
 -----------------------------------------------------
@@ -95,4 +97,4 @@ cd frontend && npm install && npm run dev
 uv run python -m backend.agent_system
 ```
 
-Both paths save each run (question, answer, raw data, status) to Neon Postgres. See [MULTI-AGENT_SYSTEM.md](MULTI-AGENT_SYSTEM.md#persistence-neon-postgres).
+Both paths save each run (question, answer, raw data, status) to Neon Postgres, and recall the user's similar past analyses as context for new questions. See [MULTI-AGENT_SYSTEM.md](MULTI-AGENT_SYSTEM.md#persistence-neon-postgres).

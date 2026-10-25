@@ -8,6 +8,7 @@ from skills.agents.analysis_agent import create_analysis_agent
 from skills.agents.data_agent import create_data_agent
 from skills.agents.orchestrator import LangGraphOrchestrator
 from backend.db.connection import get_checkpointer
+from backend.db.memory import MemoryRepository
 from backend.db.service import run_analysis
 
 ROOT_FOLDER = pathlib.Path(__file__).parent.parent
@@ -131,7 +132,10 @@ def create_two_agent_system(provider: str = None):
 
     # Return orchestrator that manages both
     return LangGraphOrchestrator(
-        data_agent, analysis_agent, checkpointer=checkpointer
+        data_agent,
+        analysis_agent,
+        checkpointer=checkpointer,
+        memory_search=MemoryRepository().search,
     )
 
 

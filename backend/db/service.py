@@ -55,7 +55,7 @@ def run_analysis(
         logger.exception("Could not create analysis record")
 
     try:
-        result = orchestrator.run_query(query, verbose=verbose, session_id=session_id)
+        result = orchestrator.run_query(query, verbose=verbose, session_id=session_id, user_id=user_id)
     except Exception as exc:
         if run_id is not None:
             _safely(repository.mark_failed, run_id, str(exc))

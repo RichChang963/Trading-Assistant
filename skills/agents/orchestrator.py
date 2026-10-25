@@ -3,7 +3,7 @@
 This module defines orchestrators that route queries, call tools, and format
 responses.
 """
-from typing import Dict, Any, List, Optional, TypedDict
+from typing import Callable, Dict, Any, List, Optional, TypedDict
 import json
 
 from langgraph.graph import StateGraph, END
@@ -15,7 +15,9 @@ from skills.utils.query_router import route_query_to_tool
 
 class GraphState(TypedDict, total=False):
     user_query: str
+    user_id: str
     routing_info: Dict[str, Any]
+    memories: List[Dict[str, Any]]
     data_response: str
     tool_outputs: List[Dict[str, str]]
     analysis_response: str
@@ -173,17 +175,23 @@ Please analyze this data and provide insights addressing the user's question."""
 
 
 class LangGraphOrchestrator:
-    """LangGraph pipeline: route (rewrite query) -> data agent -> analysis agent -> format."""
+    """LangGraph pipeline: route (rewrite query) -> data agent -> recall memory -> analysis agent -> format."""
+
+    MEMORY_LIMIT = 3
+    MIN_MEMORY_SIMILARITY = 0.5
 
     def __init__(
         self,
         data_agent,
         analysis_agent,
         checkpointer: Optional[BaseCheckpointSaver] = None,
+        memory_search: Optional[Callable[..., List[Dict[str, Any]]]] = None,
     ):
         self.data_agent = data_agent
         self.analysis_agent = analysis_agent
         self.checkpointer = checkpointer or MemorySaver()
+        # memory_search(user_id, query, limit=..., symbol=...) -> [{content, created_at, similarity, ...}]
+        self.memory_search = memory_search
         self.graph = self._build_graph()
 
     def process_query(
@@ -191,9 +199,10 @@ class LangGraphOrchestrator:
         user_query: str,
         verbose: bool = True,
         session_id: str = "default",
+        user_id: str = "local",
     ) -> str:
         return self.response_from_result(
-            self.run_query(user_query, verbose=verbose, session_id=session_id)
+            self.run_query(user_query, verbose=verbose, session_id=session_id, user_id=user_id)
         )
 
     def run_query(
@@ -201,6 +210,7 @@ class LangGraphOrchestrator:
         user_query: str,
         verbose: bool = True,
         session_id: str = "default",
+        user_id: str = "local",
     ) -> Dict[str, Any]:
         """Run the graph and return the full final state."""
         if verbose:
@@ -211,6 +221,7 @@ class LangGraphOrchestrator:
         return self.graph.invoke(
             {
                 "user_query": user_query,
+                "user_id": user_id,
                 "verbose": verbose,
             },
             config={"configurable": {"thread_id": session_id}},
@@ -229,12 +240,14 @@ class LangGraphOrchestrator:
 
         builder.add_node("route_query", self._route_query)
         builder.add_node("data_agent", self._fetch_data)
+        builder.add_node("recall_memory", self._recall_memory)
         builder.add_node("analysis", self._analysis)
         builder.add_node("format", self._format_response)
 
         builder.set_entry_point("route_query")
         builder.add_edge("route_query", "data_agent")
-        builder.add_edge("data_agent", "analysis")
+        builder.add_edge("data_agent", "recall_memory")
+        builder.add_edge("recall_memory", "analysis")
         builder.add_edge("analysis", "format")
         builder.add_edge("format", END)
 
@@ -276,6 +289,38 @@ class LangGraphOrchestrator:
             "tool_outputs": tool_outputs,
         }
 
+    def _recall_memory(self, state: GraphState) -> Dict[str, Any]:
+        # Always return the key so a checkpointed thread never reuses the previous turn's memories.
+        if self.memory_search is None:
+            return {"memories": []}
+
+        params = (state.get("routing_info") or {}).get("parameters") or {}
+        try:
+            matches = self.memory_search(
+                state.get("user_id", "local"),
+                state["user_query"],
+                limit=self.MEMORY_LIMIT,
+                symbol=params.get("symbol"),
+            )
+        except Exception as exc:
+            if state.get("verbose", False):
+                print(f"\n⚠️ Memory recall unavailable: {exc}")
+            return {"memories": []}
+
+        memories = [m for m in matches if m.get("similarity", 0) >= self.MIN_MEMORY_SIMILARITY]
+        if state.get("verbose", False):
+            print(f"\n🧠 Recalled {len(memories)} prior analysis(es)")
+        return {"memories": memories}
+
+    @staticmethod
+    def _format_memories(memories: List[Dict[str, Any]]) -> str:
+        blocks = []
+        for m in memories:
+            created_at = m.get("created_at")
+            date = created_at.strftime("%Y-%m-%d") if hasattr(created_at, "strftime") else "unknown date"
+            blocks.append(f"[{date}, similarity {m.get('similarity', 0):.2f}]\n{m['content']}")
+        return "\n\n---\n\n".join(blocks)
+
     def _analysis(self, state: GraphState) -> Dict[str, Any]:
         data_response = state.get("data_response", "")
         user_query = state.get("user_query", "")
@@ -288,10 +333,20 @@ class LangGraphOrchestrator:
             print("\n📊 PHASE 2: DATA ANALYSIS")
             print("   Sending data to analysis agent...")
 
+        memories = state.get("memories") or []
+        memory_context = (
+            "Prior analyses of related questions (may be outdated; the current data "
+            "takes precedence, use them only for context and comparison):\n\n"
+            f"{self._format_memories(memories)}\n\n"
+            if memories
+            else ""
+        )
+
         analysis_query = (
             f"The user asked: \"{user_query}\"\n\n"
             "Here is the data that was retrieved:\n\n"
             f"{data_response}\n\n"
+            f"{memory_context}"
             "Please analyze this data and provide insights addressing the user's question."
         )
 

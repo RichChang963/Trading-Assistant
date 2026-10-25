@@ -3,6 +3,7 @@ import logging
 import os
 from typing import Any
 
+from db.memory import MemoryRepository
 from db.repository import AnalysisRepository
 
 logger = logging.getLogger(__name__)
@@ -63,8 +64,24 @@ def run_analysis(
             _safely(repository.mark_failed, run_id, result.get("error") or "missing final response", response)
         else:
             _safely(repository.save_analysis_result, run_id, response, _build_snapshots(result))
+            _safely(_remember, run_id, user_id, query, response, result)
 
     return {"run_id": run_id, "response": response, "result": result}
+
+
+def _remember(run_id: int, user_id: str, query: str, response: str, result: dict[str, Any]) -> None:
+    # Keep only the analysis text; raw data lives in api_snapshots.
+    summary = response.split("\n---\n<details>", 1)[0].strip()
+    if not summary:
+        return
+    params = (result.get("routing_info") or {}).get("parameters") or {}
+    symbol = params.get("symbol")
+    MemoryRepository().add_memory(
+        user_id=user_id,
+        analysis_run_id=run_id,
+        content=f"Q: {query}\n\n{summary}",
+        metadata={"kind": "analysis_summary", "symbol": symbol.upper() if symbol else None},
+    )
 
 
 def _safely(fn, *args) -> None:

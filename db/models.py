@@ -9,6 +9,8 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # Must match the embedding model used later (OpenAI text-embedding-3-small = 1536).
 EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", "1536"))
+# all-MiniLM-L6-v2 output size; changing the model requires a new column/table.
+MEMORY_EMBEDDING_DIM = 384
 
 
 class Base(DeclarativeBase):
@@ -115,6 +117,28 @@ class ApiSnapshot(Base):
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     analysis_run: Mapped[AnalysisRun | None] = relationship(back_populates="snapshots")
+
+
+class ResearchMemory(Base):
+    __tablename__ = "research_memories"
+    __table_args__ = (
+        Index(
+            "ix_research_memories_embedding",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(Text, nullable=False, index=True)
+    analysis_run_id: Mapped[int | None] = mapped_column(ForeignKey("analysis_runs.id"))
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    embedding = mapped_column(Vector(MEMORY_EMBEDDING_DIM))
+    metadata_: Mapped[dict] = mapped_column(
+        "metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class UserPreference(Base):

@@ -26,18 +26,20 @@ export default function Docs() {
 
   return (
     <main className="docs">
-      <h1>Documentation</h1>
-      {error && <div className="error">{error}</div>}
-      <select value={selected} onChange={(e) => setSelected(e.target.value)}>
-        {docs.map((d) => (
-          <option key={d.id} value={d.id}>
-            {d.title}
-          </option>
-        ))}
-      </select>
-      <article className="doc-body">
-        <Markdown>{content}</Markdown>
-      </article>
+      <div className="docs-inner">
+        <h1>Documentation</h1>
+        {error && <div className="alert">{error}</div>}
+        <select value={selected} onChange={(e) => setSelected(e.target.value)} aria-label="Document">
+          {docs.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.title}
+            </option>
+          ))}
+        </select>
+        <article className="doc-body">
+          <Markdown>{content}</Markdown>
+        </article>
+      </div>
     </main>
   );
 }

@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm";
 let mermaidPromise;
 const loadMermaid = () => {
   mermaidPromise ??= import("mermaid").then((m) => {
-    m.default.initialize({ startOnLoad: false, theme: "default", securityLevel: "strict" });
+    m.default.initialize({ startOnLoad: false, theme: "dark", securityLevel: "strict" });
     return m.default;
   });
   return mermaidPromise;

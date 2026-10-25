@@ -1,52 +1,69 @@
-export default function Sidebar({ config, provider, onProviderChange, onClear }) {
+export default function Sidebar({
+  open,
+  config,
+  provider,
+  onProviderChange,
+  onClear,
+  onClose,
+}) {
   const current = config?.providers.find((p) => p.id === provider);
 
   return (
-    <aside className="sidebar">
-      <h2>⚙️ Settings</h2>
-
-      <h3>🤖 Agent Mode</h3>
-      <div className="info">
-        📡 <b>Data Agent</b> fetches data
-        <br />
-        <br />
-        📊 <b>Analysis Agent</b> provides insights
+    <aside className={`sidebar${open ? " open" : ""}`}>
+      <div className="sidebar-head">
+        <h2>Settings</h2>
+        <button className="icon-btn close-btn" aria-label="Close settings" onClick={onClose}>
+          ✕
+        </button>
       </div>
 
-      <label htmlFor="provider">Select Model Provider</label>
-      <select
-        id="provider"
-        value={provider}
-        onChange={(e) => onProviderChange(e.target.value)}
-        disabled={!config}
-      >
-        {config?.providers.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.id}
-          </option>
-        ))}
-      </select>
-      {current && (
-        <div className="info">
-          <b>Model:</b> {current.model}
-        </div>
-      )}
+      <section className="panel">
+        <h3>Model provider</h3>
+        <select
+          value={provider}
+          onChange={(e) => onProviderChange(e.target.value)}
+          disabled={!config}
+          aria-label="Model provider"
+        >
+          {config?.providers.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.id}
+            </option>
+          ))}
+        </select>
+        {current && <div className="chip model-chip">{current.model || "default model"}</div>}
+      </section>
 
-      <h3>Chat Controls</h3>
-      <button className="wide" onClick={onClear}>
-        🗑️ Clear Chat History
+      <section className="panel">
+        <h3>How it works</h3>
+        <ol className="steps">
+          <li>
+            <span className="step-dot">1</span>
+            <div>
+              <b>Route</b>
+              <small>Pick the right data tool</small>
+            </div>
+          </li>
+          <li>
+            <span className="step-dot">2</span>
+            <div>
+              <b>Fetch</b>
+              <small>OpenBB · Yahoo Finance · OECD</small>
+            </div>
+          </li>
+          <li>
+            <span className="step-dot">3</span>
+            <div>
+              <b>Analyze</b>
+              <small>Insights from the retrieved data</small>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <button className="btn ghost wide" onClick={onClear}>
+        🗑️ New conversation
       </button>
-
-      <hr />
-      <h3>Data Sources</h3>
-      <p>OpenBB (using Yahoo Finance &amp; OECD as two main sources)</p>
-
-      <h3>Example questions</h3>
-      <ul>
-        {config?.example_questions.map((q) => (
-          <li key={q}>{q}</li>
-        ))}
-      </ul>
     </aside>
   );
 }

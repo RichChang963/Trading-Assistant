@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 from agents.analysis_agent import create_analysis_agent
 from agents.orchestrator import LangGraphOrchestrator
+from db.connection import get_checkpointer
 from db.service import run_analysis
 
 ROOT_FOLDER = pathlib.Path(__file__).parent
@@ -120,9 +121,15 @@ def create_two_agent_system(provider: str = None):
     llm = get_llm(provider)
 
     analysis_agent = create_analysis_agent(llm)
-    
+
+    try:
+        checkpointer = get_checkpointer()
+    except Exception as exc:
+        print(f"⚠️ Postgres checkpointer unavailable, using in-memory state: {exc}")
+        checkpointer = None
+
     # Return orchestrator that manages both
-    return LangGraphOrchestrator(analysis_agent)
+    return LangGraphOrchestrator(analysis_agent, checkpointer=checkpointer)
 
 
 def run_cli():

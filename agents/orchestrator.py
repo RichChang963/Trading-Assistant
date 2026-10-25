@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional, TypedDict
 import json
 
 from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
 
 from utils.query_router import route_query_to_tool
@@ -178,7 +179,7 @@ Please analyze this data and provide insights addressing the user's question."""
 class LangGraphOrchestrator:
     """Orchestrator that routes, calls tools, and analyzes data using LangGraph."""
 
-    def __init__(self, analysis_agent, checkpointer: Optional[MemorySaver] = None):
+    def __init__(self, analysis_agent, checkpointer: Optional[BaseCheckpointSaver] = None):
         self.analysis_agent = analysis_agent
         self.checkpointer = checkpointer or MemorySaver()
         self.graph = self._build_graph()

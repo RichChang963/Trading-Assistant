@@ -32,3 +32,22 @@ def get_engine() -> Engine:
 
 def get_session() -> Session:
     return sessionmaker(bind=get_engine(), expire_on_commit=False)()
+
+
+@lru_cache(maxsize=1)
+def get_checkpointer():
+    """Postgres-backed LangGraph checkpointer (thread-scoped state, not semantic memory)."""
+    from langgraph.checkpoint.postgres import PostgresSaver
+    from psycopg.rows import dict_row
+    from psycopg_pool import ConnectionPool
+
+    url = _database_url().replace("postgresql+psycopg://", "postgresql://", 1)
+    pool = ConnectionPool(
+        url,
+        max_size=5,
+        kwargs={"autocommit": True, "row_factory": dict_row, "prepare_threshold": 0},
+        check=ConnectionPool.check_connection,
+    )
+    saver = PostgresSaver(pool)
+    saver.setup()
+    return saver

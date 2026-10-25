@@ -2,27 +2,14 @@
 
 An intelligent trading assistant built with LangChain, LangGraph and OpenBB. A LangGraph pipeline routes each question to the right OpenBB tool (Yahoo Finance, OECD), and an analysis agent turns the data into insights. Supports OpenAI, Gemini, Claude, Perplexity, OpenRouter and Ollama. Analyses, API snapshots, chat state and semantic memories are stored in Neon Postgres (pgvector).
 
-## Architecture
+## Features
 
-| Layer | Stack | Location |
-| --- | --- | --- |
-| UI | React 19 + Vite (proxies `/api` to `:8000`) | `frontend/` |
-| API | FastAPI + Uvicorn | `backend/api.py` |
-| CLI | Interactive terminal chat | `backend/agent_system.py` |
-| Agents | LangGraph orchestrator, analysis agent, query router, prompts | `skills/agents/`, `skills/utils/`, `skills/prompts/` |
-| Market data | OpenBB (Yahoo Finance, OECD) | `skills/tools/openbb_tool.py` |
-| Persistence | Neon Postgres via SQLAlchemy + psycopg 3, pgvector | `backend/db/` |
-| Chat state | LangGraph `PostgresSaver` checkpointer (falls back to in-memory) | `backend/db/connection.py` |
-| Embeddings | Local `fastembed` (`all-MiniLM-L6-v2`, 384-dim) | `backend/db/embeddings.py` |
-
-```txt
-backend/       FastAPI API, CLI entry point, Neon/Postgres layer (db/)
-skills/        AI components: agents, OpenBB tools, query router, prompts
-frontend/      React UI (Vite)
-docs/          Architecture docs (also served in the UI)
-credentials/   .env with API keys and database URL (gitignored)
-config.yaml    LLM provider and model selection
-```
+- 🤖 **Multi-LLM Support**: Choose between OpenAI, Google Gemini, Anthropic Claude, Perplexity, OpenRouter, or Ollama
+- 🧩 **Multi-Agent System**: Separate data retrieval from analysis for better performance and clarity
+- 📊 **Real-time Market Data**: Access stock quotes, historical data, news, and company profiles via OpenBB Tools (using Yahoo Finance & OECD as two main sources)
+- 📈 **Economic Indicators**: Fetch GDP, CPI, and other economic data
+- 💬 **Conversational Interface**: Natural language queries for financial data
+- 🌟 **Commodity Mapping**: Automatic symbol resolution (Gold→XAU, Silver→XAG, etc.)
 
 ## Requirements
 
@@ -85,6 +72,46 @@ You: Get me the latest news about Tesla
 [Agent retrieves TSLA news then analyzes sentiment]
 ```
 
+## How It Works
+
+```mermaid
+graph TD
+    A[User Query] --> B[Query Router]
+    B -->|rewritten prompt| C[Data Agent]
+    C -->|OpenBB tools| D[Analysis Agent]
+    D --> E[Format Response]
+    E --> F[(Neon Postgres)]
+```
+
+1. The query router adds hints to the question, such as commodity symbols (Gold → `XAU=F`, Oil → `CL=F`, …) and countries.
+2. The data agent (an LLM with the OpenBB tools) fetches the data, guided by the rewritten prompt.
+3. The analysis agent (your chosen LLM) interprets the data, and the response includes the analysis plus an expandable block with the raw tool output.
+4. Conversation state is checkpointed per `session_id` (LangGraph thread).
+
+Each run is saved to `analysis_runs` (`pending` / `completed` / `failed`) with its raw data in `api_snapshots`. Completed analyses are also embedded into `research_memories` for semantic search. Database errors are logged and never block the answer. See [docs/MULTI-AGENT_SYSTEM.md](docs/MULTI-AGENT_SYSTEM.md) for details.
+
+## Architecture
+
+| Layer | Stack | Location |
+| --- | --- | --- |
+| UI | React 19 + Vite (proxies `/api` to `:8000`) | `frontend/` |
+| API | FastAPI + Uvicorn | `backend/api.py` |
+| CLI | Interactive terminal chat | `backend/agent_system.py` |
+| Agents | LangGraph orchestrator, data agent, analysis agent, query router, prompts | `skills/agents/`, `skills/utils/`, `skills/prompts/` |
+| Market data | OpenBB (Yahoo Finance, OECD) | `skills/tools/openbb_tool.py` |
+| Persistence | Neon Postgres via SQLAlchemy + psycopg 3, pgvector | `backend/db/` |
+| Chat state | LangGraph `PostgresSaver` checkpointer (falls back to in-memory) | `backend/db/connection.py` |
+| Embeddings | Local `fastembed` (`all-MiniLM-L6-v2`, 384-dim) | `backend/db/embeddings.py` |
+
+```txt
+backend/       FastAPI API, CLI entry point, Neon/Postgres layer (db/)
+skills/        AI components: agents, OpenBB tools, query router, prompts
+frontend/      React UI (Vite)
+docs/          Architecture docs (also served in the UI)
+credentials/   .env with API keys and database URL (gitignored)
+config.yaml    LLM provider and model selection
+```
+
 ### API
 
 | Method | Path | Description |
@@ -93,26 +120,6 @@ You: Get me the latest news about Tesla
 | POST | `/api/chat` | `{message, session_id, provider}` → `{run_id, analysis, raw_data}` |
 | GET | `/api/docs` | List the Markdown files in `docs/` |
 | GET | `/api/docs/{doc_id}` | Content of one doc |
-
-## How It Works
-
-```mermaid
-graph TD
-    A[User Query] --> B[Query Router]
-    B -->|stock| C1[get_stock_data]
-    B -->|economic| C2[get_economic_data]
-    B -->|market| C3[get_market_overview]
-    C1 & C2 & C3 --> D[Analysis Agent]
-    D --> E[Format Response]
-    E --> F[(Neon Postgres)]
-```
-
-1. The query router maps the question to a tool and its parameters, including commodity symbols (Gold → `XAU=F`, Oil → `CL=F`, …) and countries.
-2. The OpenBB tool fetches the data and the analysis agent (your chosen LLM) interprets it.
-3. The response includes the analysis plus an expandable raw-data block.
-4. Conversation state is checkpointed per `session_id` (LangGraph thread).
-
-Each run is saved to `analysis_runs` (`pending` / `completed` / `failed`) with its raw data in `api_snapshots`. Completed analyses are also embedded into `research_memories` for semantic search. Database errors are logged and never block the answer. See [docs/MULTI-AGENT_SYSTEM.md](docs/MULTI-AGENT_SYSTEM.md) for details.
 
 ## License
 

@@ -56,7 +56,7 @@ graph LR
 4. Pass data to analysis agent
 5. Combine and return results
 
-`LangGraphOrchestrator` (used by the app) is a LangGraph state graph: `route_query` → one tool node (`get_stock_data`, `get_economic_data`, `get_market_overview`) → `analysis` → `format`. It calls the OpenBB tools directly based on `skills/utils/query_router.py`. `TwoAgentOrchestrator` is the alternative that delegates data retrieval to the data agent.
+`LangGraphOrchestrator` (used by the app) is a LangGraph state graph: `route_query` → `data_agent` → `analysis` → `format`. `route_query` (`skills/utils/query_router.py`) only rewrites the question with hints (symbols, countries); the data agent decides which OpenBB tools to call, and every tool call's raw output is kept in `tool_outputs` for the UI and for `api_snapshots`. `TwoAgentOrchestrator` is the same pipeline as a plain class without LangGraph (no checkpointer); the app does not use it.
 
 ---------------------------------------------------------
 
@@ -67,7 +67,7 @@ Every query goes through `run_analysis` (`backend/db/service.py`). Database fail
 | Storage | Purpose |
 |---------|---------|
 | `analysis_runs` | Each question and final answer, with status `pending` / `completed` / `failed` |
-| `api_snapshots` | Raw data used for the analysis (provider, endpoint, symbol, payload) |
+| `api_snapshots` | Raw output of each data-agent tool call (provider, tool name, symbol, payload) |
 | `research_memories` | pgvector (384-dim, `all-MiniLM-L6-v2`) embeddings of completed analyses for semantic search |
 | `user_preferences` | User settings (JSONB) |
 | LangGraph checkpoints | Per-thread graph state via the Postgres checkpointer; falls back to in-memory if the DB is unreachable |
@@ -144,7 +144,7 @@ Trading-Assistant/
 Add the tool in `skills/tools/openbb_tool.py`, then:
 
 - Data agent: add it to the `tools` list in `skills/agents/data_agent.py`.
-- LangGraph orchestrator: add a tool node and routing entry in `skills/agents/orchestrator.py`, and teach `skills/utils/query_router.py` to suggest it.
+- Optionally teach `skills/utils/query_router.py` to hint at it.
 
 ```python
 tools = [

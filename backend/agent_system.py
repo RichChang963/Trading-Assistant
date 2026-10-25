@@ -5,6 +5,7 @@ import yaml
 from dotenv import load_dotenv
 
 from skills.agents.analysis_agent import create_analysis_agent
+from skills.agents.data_agent import create_data_agent
 from skills.agents.orchestrator import LangGraphOrchestrator
 from backend.db.connection import get_checkpointer
 from backend.db.service import run_analysis
@@ -120,6 +121,7 @@ def create_two_agent_system(provider: str = None):
     llm = get_llm(provider)
 
     analysis_agent = create_analysis_agent(llm)
+    data_agent = create_data_agent(llm)
 
     try:
         checkpointer = get_checkpointer()
@@ -128,7 +130,9 @@ def create_two_agent_system(provider: str = None):
         checkpointer = None
 
     # Return orchestrator that manages both
-    return LangGraphOrchestrator(analysis_agent, checkpointer=checkpointer)
+    return LangGraphOrchestrator(
+        data_agent, analysis_agent, checkpointer=checkpointer
+    )
 
 
 def run_cli():

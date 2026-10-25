@@ -3,7 +3,7 @@
 This module defines orchestrators that route queries, call tools, and format
 responses.
 """
-from typing import Dict, Any, Optional, TypedDict
+from typing import Dict, Any, List, Optional, TypedDict
 import json
 
 from langgraph.graph import StateGraph, END
@@ -11,17 +11,13 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
 
 from skills.utils.query_router import route_query_to_tool
-from skills.tools.openbb_tool import (
-    get_stock_data,
-    get_economic_data,
-    get_market_overview,
-)
 
 
 class GraphState(TypedDict, total=False):
     user_query: str
     routing_info: Dict[str, Any]
     data_response: str
+    tool_outputs: List[Dict[str, str]]
     analysis_response: str
     final_response: str
     error: str
@@ -177,9 +173,15 @@ Please analyze this data and provide insights addressing the user's question."""
 
 
 class LangGraphOrchestrator:
-    """Orchestrator that routes, calls tools, and analyzes data using LangGraph."""
+    """LangGraph pipeline: route (rewrite query) -> data agent -> analysis agent -> format."""
 
-    def __init__(self, analysis_agent, checkpointer: Optional[BaseCheckpointSaver] = None):
+    def __init__(
+        self,
+        data_agent,
+        analysis_agent,
+        checkpointer: Optional[BaseCheckpointSaver] = None,
+    ):
+        self.data_agent = data_agent
         self.analysis_agent = analysis_agent
         self.checkpointer = checkpointer or MemorySaver()
         self.graph = self._build_graph()
@@ -226,28 +228,13 @@ class LangGraphOrchestrator:
         builder = StateGraph(GraphState)
 
         builder.add_node("route_query", self._route_query)
-        builder.add_node("tool_stock", self._tool_stock)
-        builder.add_node("tool_economic", self._tool_economic)
-        builder.add_node("tool_market", self._tool_market)
-        builder.add_node("tool_unknown", self._tool_unknown)
+        builder.add_node("data_agent", self._fetch_data)
         builder.add_node("analysis", self._analysis)
         builder.add_node("format", self._format_response)
 
         builder.set_entry_point("route_query")
-        builder.add_conditional_edges(
-            "route_query",
-            self._select_tool,
-            {
-                "get_stock_data": "tool_stock",
-                "get_economic_data": "tool_economic",
-                "get_market_overview": "tool_market",
-                "unknown": "tool_unknown",
-            },
-        )
-        builder.add_edge("tool_stock", "analysis")
-        builder.add_edge("tool_economic", "analysis")
-        builder.add_edge("tool_market", "analysis")
-        builder.add_edge("tool_unknown", "analysis")
+        builder.add_edge("route_query", "data_agent")
+        builder.add_edge("data_agent", "analysis")
         builder.add_edge("analysis", "format")
         builder.add_edge("format", END)
 
@@ -265,55 +252,29 @@ class LangGraphOrchestrator:
 
         return {"routing_info": routing_info}
 
-    def _select_tool(self, state: GraphState) -> str:
+    def _fetch_data(self, state: GraphState) -> Dict[str, Any]:
         routing_info = state.get("routing_info", {})
-        suggested_tool = routing_info.get("suggested_tool", "unknown")
-        if suggested_tool in {
-            "get_stock_data",
-            "get_economic_data",
-            "get_market_overview",
-        }:
-            return suggested_tool
-        return "unknown"
-
-    def _tool_stock(self, state: GraphState) -> Dict[str, Any]:
-        return self._call_tool(get_stock_data, state)
-
-    def _tool_economic(self, state: GraphState) -> Dict[str, Any]:
-        return self._call_tool(get_economic_data, state)
-
-    def _tool_market(self, state: GraphState) -> Dict[str, Any]:
-        return self._call_tool(get_market_overview, state)
-
-    def _tool_unknown(self, state: GraphState) -> Dict[str, Any]:
-        return {
-            "data_response": (
-                "❌ Data Retrieval Error: No suitable tool available for this query."
-            )
-        }
-
-    def _call_tool(self, tool, state: GraphState) -> Dict[str, Any]:
-        routing_info = state.get("routing_info", {})
-        parameters = routing_info.get("parameters", {})
-        verbose = state.get("verbose", False)
-
-        if verbose:
-            print(f"   Tool call: {routing_info.get('suggested_tool')}")
+        data_query = routing_info.get("rewritten_query") or state["user_query"]
 
         try:
-            if hasattr(tool, "invoke"):
-                tool_result = tool.invoke(parameters)
-            else:
-                tool_result = tool(**parameters)
+            result = self.data_agent.invoke({"messages": [("user", data_query)]})
         except Exception as exc:
             return {"data_response": f"❌ Data Retrieval Error: {str(exc)}"}
 
-        data_response = self._ensure_text(tool_result)
+        messages = result["messages"]
+        tool_outputs = [
+            {"name": getattr(m, "name", None) or "tool", "content": self._extract_message_content(m)}
+            for m in messages
+            if getattr(m, "type", None) == "tool"
+        ]
 
-        if verbose:
-            print("\n✅ Data retrieved successfully")
+        if state.get("verbose", False):
+            print(f"\n✅ Data retrieved ({len(tool_outputs)} tool call(s))")
 
-        return {"data_response": data_response}
+        return {
+            "data_response": self._extract_message_content(messages[-1]),
+            "tool_outputs": tool_outputs,
+        }
 
     def _analysis(self, state: GraphState) -> Dict[str, Any]:
         data_response = state.get("data_response", "")
@@ -358,13 +319,14 @@ class LangGraphOrchestrator:
             return {"final_response": state["error"]}
 
         analysis_response = state.get("analysis_response", "")
-        data_response = state.get("data_response", "")
+        tool_outputs = state.get("tool_outputs") or []
+        raw_data = "\n\n".join(o["content"] for o in tool_outputs) or state.get("data_response", "")
         final_response = (
             f"{analysis_response}\n\n"
             "---\n"
             "<details>\n"
             "<summary>📁 View Raw Data</summary>\n\n"
-            f"{data_response}\n\n"
+            f"{raw_data}\n\n"
             "</details>\n"
         )
 
@@ -385,14 +347,6 @@ class LangGraphOrchestrator:
                 return response
             return content
         return str(message)
-
-    def _ensure_text(self, tool_result: Any) -> str:
-        if isinstance(tool_result, str):
-            return tool_result
-        try:
-            return json.dumps(tool_result, indent=2, default=str)
-        except TypeError:
-            return str(tool_result)
 
     def _is_data_error(self, data_response: str) -> bool:
         lower = data_response.lower()

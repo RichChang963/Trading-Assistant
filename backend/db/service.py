@@ -13,25 +13,28 @@ DEFAULT_USER_ID = os.getenv("APP_USER_ID", "local")
 
 
 def _build_snapshots(result: dict[str, Any]) -> list[dict]:
-    raw = result.get("data_response")
-    routing = result.get("routing_info") or {}
-    if not raw:
-        return []
-    try:
-        payload = json.loads(raw)
-    except (TypeError, ValueError):
-        payload = {"text": raw}
-    if not isinstance(payload, dict):
-        payload = {"data": payload}
-    params = routing.get("parameters") or {}
-    return [
-        {
-            "provider": "openbb",
-            "endpoint": routing.get("suggested_tool"),
-            "symbol": params.get("symbol"),
-            "payload": payload,
-        }
-    ]
+    params = (result.get("routing_info") or {}).get("parameters") or {}
+    outputs = result.get("tool_outputs") or []
+    if not outputs and result.get("data_response"):
+        outputs = [{"name": "data_agent", "content": result["data_response"]}]
+
+    snapshots = []
+    for output in outputs:
+        try:
+            payload = json.loads(output["content"])
+        except (TypeError, ValueError):
+            payload = {"text": output["content"]}
+        if not isinstance(payload, dict):
+            payload = {"data": payload}
+        snapshots.append(
+            {
+                "provider": "openbb",
+                "endpoint": output["name"],
+                "symbol": payload.get("symbol") or params.get("symbol"),
+                "payload": payload,
+            }
+        )
+    return snapshots
 
 
 def run_analysis(
@@ -74,8 +77,7 @@ def _remember(run_id: int, user_id: str, query: str, response: str, result: dict
     summary = response.split("\n---\n<details>", 1)[0].strip()
     if not summary:
         return
-    params = (result.get("routing_info") or {}).get("parameters") or {}
-    symbol = params.get("symbol")
+    symbol = next((s["symbol"] for s in _build_snapshots(result) if s["symbol"]), None)
     MemoryRepository().add_memory(
         user_id=user_id,
         analysis_run_id=run_id,

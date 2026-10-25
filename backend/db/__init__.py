@@ -1,5 +1,5 @@
-from db.connection import get_engine, get_session
-from db.models import (
+from backend.db.connection import get_engine, get_session
+from backend.db.models import (
     AnalysisRun,
     ApiSnapshot,
     Base,

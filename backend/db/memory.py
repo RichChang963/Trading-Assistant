@@ -1,6 +1,6 @@
-from db.connection import get_session
-from db.embeddings import embed_text
-from db.models import ResearchMemory
+from backend.db.connection import get_session
+from backend.db.embeddings import embed_text
+from backend.db.models import ResearchMemory
 
 
 class MemoryRepository:

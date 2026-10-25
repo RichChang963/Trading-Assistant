@@ -10,8 +10,8 @@ from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
 
-from utils.query_router import route_query_to_tool
-from tools.openbb_tool import (
+from skills.utils.query_router import route_query_to_tool
+from skills.tools.openbb_tool import (
     get_stock_data,
     get_economic_data,
     get_market_overview,

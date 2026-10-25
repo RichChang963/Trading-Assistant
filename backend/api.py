@@ -6,11 +6,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from agent_system import MODEL_CONFIG, create_two_agent_system
-from db.service import run_analysis
+from backend.agent_system import MODEL_CONFIG, create_two_agent_system
+from backend.db.service import run_analysis
 
 LLM_LIST = ["gemini", "openai", "claude", "perplexity", "openrouter", "ollama"]
-DOCS_PATH = Path(__file__).parent / "docs"
+DOCS_PATH = Path(__file__).parent.parent / "docs"
 
 app = FastAPI(title="Trading Assistant API")
 app.add_middleware(

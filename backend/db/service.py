@@ -3,8 +3,8 @@ import logging
 import os
 from typing import Any
 
-from db.memory import MemoryRepository
-from db.repository import AnalysisRepository
+from backend.db.memory import MemoryRepository
+from backend.db.repository import AnalysisRepository
 
 logger = logging.getLogger(__name__)
 

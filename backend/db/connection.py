@@ -1,12 +1,13 @@
 import os
 from functools import lru_cache
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from utils.settings import ROOT_FOLDER
+ROOT_FOLDER = Path(__file__).resolve().parents[2]
 
 load_dotenv(ROOT_FOLDER / "credentials" / ".env")
 load_dotenv()

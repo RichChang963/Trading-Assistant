@@ -4,7 +4,8 @@ import pathlib
 import re
 import pycountry
 
-ROOT_FOLDER = pathlib.Path(__file__).parent.parent
+ROOT_FOLDER = pathlib.Path(__file__).parent.parent.parent
+PROMPTS_FOLDER = pathlib.Path(__file__).parent.parent / "prompts"
 
 def load_system_prompt_text(prompt_file_name: str) -> str:
     """Load a system prompt from a markdown file.
@@ -19,7 +20,7 @@ def load_system_prompt_text(prompt_file_name: str) -> str:
     str
         Prompt text loaded from disk.
     """
-    prompt_path = ROOT_FOLDER / ".github" / "prompts" / prompt_file_name
+    prompt_path = PROMPTS_FOLDER / prompt_file_name
     with open(prompt_path, "r", encoding="utf-8") as f:
         return f.read()
 

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
-from db.connection import get_session
-from db.models import AnalysisRun, ApiSnapshot
+from backend.db.connection import get_session
+from backend.db.models import AnalysisRun, ApiSnapshot
 
 
 class AnalysisRepository:

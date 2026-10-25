@@ -22,7 +22,7 @@ graph LR
 
 ## Agents in the Two-Agent System
 
-### 1. Data Agent (`agents/data_agent.py`)
+### 1. Data Agent (`skills/agents/data_agent.py`)
 
 **Purpose**: Fetch market data from APIs
 
@@ -33,7 +33,7 @@ graph LR
 - ✅ Return structured raw data
 - ❌ NO analysis or insights
 
-### 2. Analysis Agent (`agents/analysis_agent.py`)
+### 2. Analysis Agent (`skills/agents/analysis_agent.py`)
 
 **Purpose**: Analyze financial data and provide insights
 
@@ -44,7 +44,7 @@ graph LR
 - ✅ Provide context and implications
 - ❌ NO data fetching (no tools)
 
-### 3. Orchestrator (`agents/orchestrator.py`)
+### 3. Orchestrator (`skills/agents/orchestrator.py`)
 
 **Purpose**: Coordinate workflow between agents
 
@@ -90,19 +90,22 @@ graph LR
 
 ```txt
 Trading-Assistant/
-├── .github/prompts/           # default system prompts for agents
-├── agent_system.py            # Main entry point
-├── api.py                     # FastAPI backend
+├── backend/
+│   ├── agent_system.py        # Main entry point (CLI + LLM setup)
+│   ├── api.py                 # FastAPI backend
+│   └── db/                    # Neon Postgres models, repositories, memory
 ├── frontend/                  # React UI (Vite)
-├── agents/
-│   ├── __init__.py            # Module init
-│   ├── data_agent.py          # Data retrieval agent
-│   ├── analysis_agent.py      # Analysis agent
-│   └── orchestrator.py        # Agent coordinator
-├── tools/
-│   └── openbb_tool.py         # OpenBB tools
-└── utils/
-    └── query_router.py        # Query routing & commodity mapping
+└── skills/                    # AI components
+    ├── prompts/               # default system prompts for agents
+    ├── agents/
+    │   ├── __init__.py        # Module init
+    │   ├── data_agent.py      # Data retrieval agent
+    │   ├── analysis_agent.py  # Analysis agent
+    │   └── orchestrator.py    # Agent coordinator
+    ├── tools/
+    │   └── openbb_tool.py     # OpenBB tools
+    └── utils/
+        └── query_router.py    # Query routing & commodity mapping
 ```
 
 ---------------------------------------------------------

@@ -5,8 +5,8 @@ Provides a helper to create a data agent configured with the system prompt.
 import pathlib
 from langchain.agents import create_agent
 
-from tools.openbb_tool import get_stock_data, get_economic_data, get_market_overview
-from utils.settings import load_system_prompt_text
+from skills.tools.openbb_tool import get_stock_data, get_economic_data, get_market_overview
+from skills.utils.settings import load_system_prompt_text
 
 ROOT_FOLDER = pathlib.Path(__file__).parent.parent
 

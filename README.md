@@ -59,7 +59,7 @@ Select the LLM model that you would like to us in the `config.yaml`.
 Run the agent:
 
 ```bash
-python agent_system.py
+python -m backend.agent_system
 ```
 
 You'll be prompted to choose between:
@@ -86,7 +86,7 @@ You: Get me the latest news about Tesla
 Start the backend API (port 8000):
 
 ```bash
-uv run uvicorn api:app --reload
+uv run uvicorn backend.api:app --reload
 ```
 
 In a second terminal, start the React frontend (requires Node.js >= 26.12.1):

@@ -4,13 +4,12 @@ import uuid
 import yaml
 from dotenv import load_dotenv
 
-from agents.analysis_agent import create_analysis_agent
-from agents.orchestrator import LangGraphOrchestrator
-from db.connection import get_checkpointer
-from db.service import run_analysis
+from skills.agents.analysis_agent import create_analysis_agent
+from skills.agents.orchestrator import LangGraphOrchestrator
+from backend.db.connection import get_checkpointer
+from backend.db.service import run_analysis
 
-ROOT_FOLDER = pathlib.Path(__file__).parent
-
+ROOT_FOLDER = pathlib.Path(__file__).parent.parent
 # Load config.yaml
 config_path = ROOT_FOLDER / "config.yaml"
 with open(config_path, "r") as file:

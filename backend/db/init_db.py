@@ -1,8 +1,8 @@
 """Enable pgvector and create all tables: python -m db.init_db"""
 from sqlalchemy import text
 
-from db.connection import get_engine
-from db.models import Base
+from backend.db.connection import get_engine
+from backend.db.models import Base
 
 
 def init_db() -> None:

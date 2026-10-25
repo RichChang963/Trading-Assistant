@@ -1,5 +1,5 @@
 import re
-from utils.settings import resolve_country_from_query
+from skills.utils.settings import resolve_country_from_query
 
 def route_query_to_tool(query: str) -> dict:
     """Suggest the appropriate tool for a user query.

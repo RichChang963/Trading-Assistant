@@ -5,7 +5,7 @@ Provides a helper to create an analysis agent configured with the system prompt.
 import pathlib
 from langchain.agents import create_agent
 
-from utils.settings import load_system_prompt_text
+from skills.utils.settings import load_system_prompt_text
 
 ROOT_FOLDER = pathlib.Path(__file__).parent.parent
 

@@ -189,12 +189,23 @@ class LangGraphOrchestrator:
         verbose: bool = True,
         session_id: str = "default",
     ) -> str:
+        return self.response_from_result(
+            self.run_query(user_query, verbose=verbose, session_id=session_id)
+        )
+
+    def run_query(
+        self,
+        user_query: str,
+        verbose: bool = True,
+        session_id: str = "default",
+    ) -> Dict[str, Any]:
+        """Run the graph and return the full final state."""
         if verbose:
             print("\n" + "=" * 60)
             print("🤖 TWO-AGENT SYSTEM ACTIVATED")
             print("=" * 60)
 
-        result = self.graph.invoke(
+        return self.graph.invoke(
             {
                 "user_query": user_query,
                 "verbose": verbose,
@@ -202,6 +213,8 @@ class LangGraphOrchestrator:
             config={"configurable": {"thread_id": session_id}},
         )
 
+    @staticmethod
+    def response_from_result(result: Dict[str, Any]) -> str:
         if "final_response" in result:
             return result["final_response"]
         if "error" in result:

@@ -6,6 +6,7 @@ from streamlit_markdown import st_markdown
 import yaml
 
 from agent_system import create_two_agent_system
+from db.service import run_analysis
 from utils.settings import json_to_dataframe
 
 LLM_LIST = ["gemini", "openai", "claude", "perplexity", "openrouter", "ollama"]
@@ -169,11 +170,11 @@ with tab1:
             with st.spinner("Processing..."):
                 try:
                     if agent_mode == "Two-Agent System":
-                        response = st.session_state.orchestrator.process_query(
+                        response = run_analysis(
+                            st.session_state.orchestrator,
                             user_input,
-                            verbose=False,
                             session_id=st.session_state.session_id,
-                        )
+                        )["response"]
                     analysis_text, raw_json = _extract_raw_json(response)
 
                     df = json_to_dataframe(raw_json, debug=True) if raw_json else None

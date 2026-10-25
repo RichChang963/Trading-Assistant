@@ -94,7 +94,11 @@ class AnalysisRun(Base):
     user_id: Mapped[str] = mapped_column(Text, nullable=False)
     query: Mapped[str] = mapped_column(Text, nullable=False)
     answer: Mapped[str | None] = mapped_column(Text)
+    # pending / completed / failed
+    status: Mapped[str] = mapped_column(Text, nullable=False, server_default="pending")
+    error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     snapshots: Mapped[list["ApiSnapshot"]] = relationship(back_populates="analysis_run")
 

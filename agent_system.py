@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 from agents.analysis_agent import create_analysis_agent
 from agents.orchestrator import LangGraphOrchestrator
+from db.service import run_analysis
 
 ROOT_FOLDER = pathlib.Path(__file__).parent
 
@@ -152,11 +153,12 @@ def run_cli():
                 continue
             
             try:
-                response = orchestrator.process_query(
+                response = run_analysis(
+                    orchestrator,
                     user_input,
-                    verbose=True,
                     session_id=session_id,
-                )
+                    verbose=True,
+                )["response"]
                 print(f"\nAssistant: {response}\n")
             except Exception as e:
                 print(f"\nError: {str(e)}\n")

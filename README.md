@@ -15,20 +15,19 @@ An intelligent trading assistant powered by LangChain & LangGraph that integrate
 
 ### 1. Clone the Repository
 
-In order to install the application, first make sure you have _git_, _conda_ installed.
+In order to install the application, first make sure you have _git_ and _uv_ (>= 0.13.4) installed.
 
-Then, clone the source code from GitHub onto your local machine and navigate into the `Trading-Assistant` directory. Finally, use the provided `environment.yaml` file to create the _conda_ environment.
+Then, clone the source code from GitHub onto your local machine and navigate into the `Trading-Assistant` directory. Finally, use `uv sync` to create the virtual environment.
 
 ```bash
 git clone https://github.com/samarthiith/Trading-Assistant
 cd Trading-Assistant
 ```
 
-### 2. Create Conda Environment
+### 2. Create Environment
 
 ```bash
-conda env create -f envs/environment.yaml
-conda activate trading
+uv sync
 ```
 
 ### 3. Set Up Environment Variables
@@ -87,7 +86,7 @@ You: Get me the latest news about Tesla
 To run the Streamlit dashboard:
 
 ```bash
-streamlit run dashboard.py
+uv run streamlit run dashboard.py
 ```
 
 The dashboard will open in your browser at `http://localhost:8501`. The app will enable you to interact in the chatbox.

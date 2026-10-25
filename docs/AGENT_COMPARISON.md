@@ -37,6 +37,7 @@ graph LR
     end
     
     D --> E[Combined Response]
+    E --> F[(Neon Postgres)]
 ```
 
 -----------------------------------------------------
@@ -60,8 +61,11 @@ The gold price shows bullish momentum with...
 This increase aligns with...
 
 ---
-📁 View Raw Data
+<details>
+<summary>📁 View Raw Data</summary>
+
 [Expandable section with complete API response]
+</details>
 ```
 
 -----------------------------------------------------
@@ -72,16 +76,23 @@ This increase aligns with...
 
 - "Analyze gold price trends over the past year"
 - "Compare Apple and Microsoft financial performance"
-- "What does the recent CPI data in Gemrany mean for markets?"
+- "What does the recent CPI data in Germany mean for markets?"
 
 -----------------------------------------------------
 
-## Migration Guide
+## Using the Two-Agent System
 
-### Switching from Single to Two-Agent
+**Web app:** start the API and the React frontend, then chat at `http://localhost:5173`. Pick the model provider in the sidebar.
 
-**Dashboard:**
-Select "Two-Agent System" in sidebar radio button
+```bash
+uv run uvicorn backend.api:app --reload
+cd frontend && npm install && npm run dev
+```
 
 **CLI:**
-Just select option `2` when prompted
+
+```bash
+uv run python -m backend.agent_system
+```
+
+Both paths save each run (question, answer, raw data, status) to Neon Postgres. See [MULTI-AGENT_SYSTEM.md](MULTI-AGENT_SYSTEM.md#persistence-neon-postgres).

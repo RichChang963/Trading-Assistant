@@ -56,6 +56,25 @@ graph LR
 4. Pass data to analysis agent
 5. Combine and return results
 
+`LangGraphOrchestrator` (used by the app) is a LangGraph state graph: `route_query` → one tool node (`get_stock_data`, `get_economic_data`, `get_market_overview`) → `analysis` → `format`. It calls the OpenBB tools directly based on `skills/utils/query_router.py`. `TwoAgentOrchestrator` is the alternative that delegates data retrieval to the data agent.
+
+---------------------------------------------------------
+
+## Persistence (Neon Postgres)
+
+Every query goes through `run_analysis` (`backend/db/service.py`). Database failures are logged and never block the answer.
+
+| Storage | Purpose |
+|---------|---------|
+| `analysis_runs` | Each question and final answer, with status `pending` / `completed` / `failed` |
+| `api_snapshots` | Raw data used for the analysis (provider, endpoint, symbol, payload) |
+| `research_memories` | pgvector (384-dim, `all-MiniLM-L6-v2`) embeddings of completed analyses for semantic search |
+| `user_preferences` | User settings (JSONB) |
+| LangGraph checkpoints | Per-thread graph state via the Postgres checkpointer; falls back to in-memory if the DB is unreachable |
+| `documents`, `document_chunks`, `chat_sessions`, `chat_messages` | Tables for document RAG and chat history (not yet written by the app) |
+
+The checkpointer (thread state) and pgvector (cross-conversation semantic search) serve different purposes. Create the tables with `uv run python -m backend.db.init_db`.
+
 ---------------------------------------------------------
 
 ## Benefits of Two-Agent System
@@ -91,9 +110,16 @@ graph LR
 ```txt
 Trading-Assistant/
 ├── backend/
-│   ├── agent_system.py        # Main entry point (CLI + LLM setup)
-│   ├── api.py                 # FastAPI backend
-│   └── db/                    # Neon Postgres models, repositories, memory
+│   ├── agent_system.py        # CLI entry point + LLM setup
+│   ├── api.py                 # FastAPI backend (/api/chat, /api/config, /api/docs)
+│   └── db/                    # Neon Postgres layer
+│       ├── connection.py      # Engine and LangGraph checkpointer
+│       ├── models.py          # SQLAlchemy tables
+│       ├── repository.py      # analysis_runs / api_snapshots access
+│       ├── service.py         # run_analysis: run + persist
+│       ├── memory.py          # research_memories add / search
+│       ├── embeddings.py      # Embedding model
+│       └── init_db.py         # Enable pgvector, create tables
 ├── frontend/                  # React UI (Vite)
 └── skills/                    # AI components
     ├── prompts/               # default system prompts for agents
@@ -105,7 +131,8 @@ Trading-Assistant/
     ├── tools/
     │   └── openbb_tool.py     # OpenBB tools
     └── utils/
-        └── query_router.py    # Query routing & commodity mapping
+        ├── query_router.py    # Query routing & commodity mapping
+        └── settings.py        # Prompt loading, country resolution
 ```
 
 ---------------------------------------------------------
@@ -114,7 +141,10 @@ Trading-Assistant/
 
 ### Adding New Tools
 
-Add tools to `data_agent.py` only:
+Add the tool in `skills/tools/openbb_tool.py`, then:
+
+- Data agent: add it to the `tools` list in `skills/agents/data_agent.py`.
+- LangGraph orchestrator: add a tool node and routing entry in `skills/agents/orchestrator.py`, and teach `skills/utils/query_router.py` to suggest it.
 
 ```python
 tools = [
@@ -125,4 +155,4 @@ tools = [
 
 ### Modifying Analysis Logic
 
-Edit prompts: you can edit the system prompts of each agent in `.github/prompts/`
+Edit the system prompts of each agent in `skills/prompts/`.
